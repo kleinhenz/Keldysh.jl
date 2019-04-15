@@ -1,0 +1,7 @@
+name = "Keldysh"
+uuid = "50f2bc7e-5fd7-11e9-13c7-85fb88b4f34f"
+authors = ["Joseph Kleinhenz <kleinhenz.joseph@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
