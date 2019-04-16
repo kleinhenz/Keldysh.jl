@@ -29,7 +29,7 @@ maps from the unit interval [0, 1] to a point on a branch
 """
 function get_point(b::Branch, ref::Real)
   @assert 0.0 <= ref <= 1.0
-  return BranchPoint((b.max_val - b.min_val) * ref, ref, b.domain)
+  return BranchPoint(ref * b.max_val + (1 - ref) * b.min_val, ref, b.domain)
 end
 
 function length(b::Branch)
