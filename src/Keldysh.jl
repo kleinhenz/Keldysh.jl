@@ -13,7 +13,7 @@ export full_contour, keldysh_contour, imaginary_contour, Contour, twist, heavisi
 export TimeGrid
 
 # generate_gf functions
-export gf_1level
+export make_gf, gf_1level, dos2gf
 
 include("util.jl")
 include("branch.jl")
