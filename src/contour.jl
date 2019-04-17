@@ -3,13 +3,13 @@
 struct Contour
   branches::Vector{Branch}
   domain::ContourEnum
-  function Contour(d::ContourEnum; tmax=0.0, beta=0.0)
+  function Contour(d::ContourEnum; tmax=0.0, β=0.0)
     if d == full_contour
-      return new([Branch(forward_branch, tmax), Branch(backward_branch, tmax), Branch(imaginary_branch, beta)], full_contour)
+      return new([Branch(forward_branch, tmax), Branch(backward_branch, tmax), Branch(imaginary_branch, β)], full_contour)
     elseif d == keldysh_contour
       return new([Branch(forward_branch, tmax), Branch(backward_branch, tmax)], keldysh_contour)
     else
-      return new([Branch(imaginary_branch, beta)], imaginary_contour)
+      return new([Branch(imaginary_branch, β)], imaginary_contour)
     end
   end
 end
