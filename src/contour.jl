@@ -14,9 +14,15 @@ struct Contour
   end
 end
 
-function twist(c::Contour)
+function twist!(c::Contour)
   c.branches .= circshift(c.branches, -1)
   return c
+end
+
+function twist(c::Contour)
+  c_ = copy(c) #FIXME need to define copy for custom types
+  twist!(c_)
+  return c_
 end
 
 function get_branch(c::Contour, d::BranchEnum)
