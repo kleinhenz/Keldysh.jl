@@ -19,3 +19,46 @@ using Keldysh, Test
   @test length(imag) == beta
 
 end
+
+@testset "contour" begin
+  c = Contour(full_contour, tmax=2.0, β=5.0)
+  for i in 1:3
+    @test c.branches[i].domain == BranchEnum(i)
+  end
+
+  twist!(c)
+  for i in 1:3
+    @test c.branches[i].domain == BranchEnum(mod1(i+1, 3))
+  end
+end
+
+@testset "time_grid" begin
+  c = Contour(full_contour, tmax=2.0, β=5.0)
+  grid = TimeGrid(c, npts_real=21, npts_imag=51)
+
+  @test grid.step[1] ≈ 0.1
+  @test grid.step[2] ≈ -0.1
+  @test grid.step[3] ≈ -0.1im
+end
+
+@testset "generate_gf" begin
+  tmax = 1.0
+  β = 1.0
+
+  c = twist!(Contour(full_contour, tmax=tmax, β=β))
+  grid = TimeGrid(c, npts_real=51, npts_imag=51)
+
+  D = 10.0
+  ν = 10.0
+  dos = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
+
+  @time hyb1 = make_gf(grid, time_invariant=false) do t1, t2
+    dos2gf(t1, t2, dos=dos, β=β)
+  end
+
+  @time hyb2 = make_gf(grid, time_invariant=true) do t1, t2
+    dos2gf(t1, t2, dos=dos, β=β)
+  end
+
+  @test hyb1 ≈ hyb2
+end
