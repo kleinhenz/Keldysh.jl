@@ -1,4 +1,4 @@
-@enum ContourEnum full_contour keldysh_contour imaginary_contour
+@enum ContourEnum full_contour=1 keldysh_contour=2 imaginary_contour=3
 
 struct Contour
   branches::Vector{Branch}

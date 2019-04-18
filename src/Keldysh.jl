@@ -4,10 +4,10 @@ module Keldysh
 export fermi
 
 # Branch functions
-export forward_branch, backward_branch, imaginary_branch, BranchPoint, Branch, get_point
+export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoint, Branch, get_point
 
 # Contour functions
-export full_contour, keldysh_contour, imaginary_contour, Contour, twist, heaviside, θ, get_branch
+export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, twist!, twist, heaviside, θ, get_branch
 
 # TimeGrid functions
 export TimeGrid

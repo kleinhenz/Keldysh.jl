@@ -1,6 +1,6 @@
 import Base.length
 
-@enum BranchEnum forward_branch backward_branch imaginary_branch
+@enum BranchEnum forward_branch=1 backward_branch=2 imaginary_branch=3
 
 struct BranchPoint
   val::ComplexF64
