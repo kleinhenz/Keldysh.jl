@@ -49,11 +49,11 @@ end
     dos = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
 
     @time hyb1 = make_gf(grid, time_invariant=false) do t1, t2
-      dos2gf(t1, t2, dos=dos, β=β)
+      dos2gf(dos, t1, t2, β=β)
     end
 
     @time hyb2 = make_gf(grid, time_invariant=true) do t1, t2
-      dos2gf(t1, t2, dos=dos, β=β)
+      dos2gf(dos, t1, t2, β=β)
     end
 
     @test hyb1 ≈ hyb2
@@ -64,7 +64,7 @@ end
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
 
     dos = ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν)) # ~δ(ω - ϵ)
-    hyb1 = dos2gf(grid, dos=dos)
+    hyb1 = dos2gf(dos, grid)
     hyb2 = gf_1level(grid, ϵ=ϵ)
 
     # gf_1level is gf for a delta function spectrum
