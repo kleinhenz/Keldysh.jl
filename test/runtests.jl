@@ -33,12 +33,26 @@ end
 end
 
 @testset "time_grid" begin
-  c = Contour(full_contour, tmax=2.0, β=5.0)
-  grid = TimeGrid(c, npts_real=21, npts_imag=51)
+  let tmax = 2.0, β = 5.0
+    c = Contour(full_contour, tmax=tmax, β=β)
+    grid = TimeGrid(c, npts_real=21, npts_imag=51)
+    @test grid.step[1] ≈ 0.1
+    @test grid.step[2] ≈ -0.1
+    @test grid.step[3] ≈ -0.1im
 
-  @test grid.step[1] ≈ 0.1
-  @test grid.step[2] ≈ -0.1
-  @test grid.step[3] ≈ -0.1im
+    @test β == Keldysh.get_beta(grid, nothing)
+    @test_throws AssertionError Keldysh.get_beta(grid, β)
+  end
+
+  let tmax = 2.0, β = 5.0
+    c = Contour(keldysh_contour, tmax=tmax)
+    grid = TimeGrid(c, npts_real=21)
+    @test grid.step[1] ≈ 0.1
+    @test grid.step[2] ≈ -0.1
+
+    @test_throws AssertionError Keldysh.get_beta(grid, nothing)
+    @test β == Keldysh.get_beta(grid, β)
+  end
 end
 
 @testset "generate_gf" begin
@@ -69,5 +83,8 @@ end
 
     # gf_1level is gf for a delta function spectrum
     @test isapprox(hyb1, hyb2, atol=ν, norm=x -> norm(x, Inf))
+
+    # can't also supply β if it is part of the contour
+    @test_throws AssertionError dos2gf(dos, grid, β = β)
   end
 end
