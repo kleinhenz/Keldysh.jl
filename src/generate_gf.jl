@@ -50,20 +50,20 @@ function gf_1level(grid::TimeGrid; ϵ, β=nothing)
   end
 end
 
-function dos2gf(t1::BranchPoint, t2::BranchPoint; dos, β, D=100.0)
+function dos2gf(t1::BranchPoint, t2::BranchPoint; dos, β)
 #    integral, err = quadgk(ω -> dos(ω) * (θ(t1, t2) - fermi(ω, β)) * exp(-1.0im * (t1.val - t2.val) * ω), -Inf, Inf)
     theta = θ(t1, t2)
     Δt = t1.val - t2.val
     integrand = ω -> dos(ω) * (ω > 0.0 ? exp(-1.0im * ω * (Δt - 1.0im * (1.0 - theta) * β)) / (exp(-β * ω) + 1) :
                                          exp(-1.0im * ω * (Δt + 1.0im * theta * β)) / (exp(β * ω) + 1))
-    integral, err = quadgk(integrand, -D, D, atol=1e-10, rtol=1e-10, maxevals=10^8)
+    integral, err = quadgk(integrand, -Inf, Inf, atol=1e-10, rtol=1e-10, maxevals=10^8, order=14)
     return -1.0im * (2 * theta - 1) * integral
 end
 
-function dos2gf(grid::TimeGrid; dos, β=nothing, D=100.0)
+function dos2gf(grid::TimeGrid; dos, β=nothing)
   β = get_beta(grid, β)
   make_gf(grid, time_invariant=true) do t1, t2
-    dos2gf(t1, t2, dos=dos, β=β, D=D)
+    dos2gf(t1, t2, dos=dos, β=β)
   end
 end
 
