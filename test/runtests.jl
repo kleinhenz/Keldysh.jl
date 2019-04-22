@@ -33,7 +33,7 @@ end
     @test c.branches[i].domain == BranchEnum(i)
   end
 
-  twist!(c)
+  c = twist(c)
   for i in 1:3
     @test c.branches[i].domain == BranchEnum(mod1(i+1, 3))
   end
@@ -67,7 +67,7 @@ end
 @testset "generate_gf" begin
   let tmax = 1.0, β = 1.0, D=10.0, ν = 10.0
 
-    c = twist!(Contour(full_contour, tmax=tmax, β=β))
+    c = twist(Contour(full_contour, tmax=tmax, β=β))
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
     dos = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
 
@@ -83,7 +83,7 @@ end
   end
 
   let tmax = 1.0, β = 1.0, ν = 1/1000, ϵ = 2.0
-    c = twist!(Contour(full_contour, tmax=tmax, β=β))
+    c = twist(Contour(full_contour, tmax=tmax, β=β))
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
 
     dos = ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν)) # ~δ(ω - ϵ)

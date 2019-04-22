@@ -1,28 +1,52 @@
 @enum ContourEnum full_contour=1 keldysh_contour=2 imaginary_contour=3
 
-struct Contour
-  branches::Vector{Branch}
-  domain::ContourEnum
-  function Contour(d::ContourEnum; tmax=0.0, β=0.0)
-    if d == full_contour
-      return new([Branch(forward_branch, tmax), Branch(backward_branch, tmax), Branch(imaginary_branch, β)], full_contour)
-    elseif d == keldysh_contour
-      return new([Branch(forward_branch, tmax), Branch(backward_branch, tmax)], keldysh_contour)
-    else
-      return new([Branch(imaginary_branch, β)], imaginary_contour)
-    end
+function branch_set(c::ContourEnum)
+  if c == full_contour
+    return Set([forward_branch, backward_branch, imaginary_branch])
+  elseif c == keldysh_contour
+    return Set([forward_branch, backward_branch])
+  else
+    return Set([imaginary_branch])
   end
 end
 
-function twist!(c::Contour)
-  c.branches .= circshift(c.branches, -1)
-  return c
+function get_contour_enum(branches::Set{BranchEnum})
+  for c in instances(ContourEnum)
+    branch_set(c) == branches && return c
+  end
+  @assert false "invalid branch set"
+end
+
+function get_contour_enum(branches::AbstractVector{Branch})
+  branch_set = Set([b.domain for b in branches])
+  @assert length(branch_set) == length(branches) "branches must be unique"
+  return get_contour_enum(branch_set)
+end
+
+struct Contour
+  domain::ContourEnum
+  branches::Vector{Branch}
+
+  function Contour(branches::AbstractVector{Branch})
+    contour_enum = get_contour_enum(branches)
+    new(contour_enum, branches)
+  end
+
+end
+
+function Contour(d::ContourEnum; tmax=0.0, β=0.0)
+  if d == full_contour
+    branches = [Branch(forward_branch, tmax), Branch(backward_branch, tmax), Branch(imaginary_branch, β)]
+  elseif d == keldysh_contour
+    branches = [Branch(forward_branch, tmax), Branch(backward_branch, tmax)]
+  else
+    branches = [Branch(imaginary_branch, β)]
+  end
+  return Contour(branches)
 end
 
 function twist(c::Contour)
-  c_ = copy(c) #FIXME need to define copy for custom types
-  twist!(c_)
-  return c_
+  return Contour(circshift(c.branches, -1))
 end
 
 function get_branch(c::Contour, d::BranchEnum)
