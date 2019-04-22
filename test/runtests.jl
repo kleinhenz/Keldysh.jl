@@ -37,6 +37,10 @@ end
   for i in 1:3
     @test c.branches[i].domain == BranchEnum(mod1(i+1, 3))
   end
+
+  @test nbranches(full_contour) == 3
+  @test nbranches(keldysh_contour) == 2
+  @test nbranches(imaginary_contour) == 1
 end
 
 @testset "time_grid" begin

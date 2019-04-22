@@ -1,5 +1,42 @@
 @enum ContourEnum full_contour=1 keldysh_contour=2 imaginary_contour=3
 
+struct Contour
+  domain::ContourEnum
+  branches::Vector{Branch}
+
+  function Contour(branches::AbstractVector{Branch})
+    contour_enum = get_contour_enum(branches)
+    # TODO assert that these branches make sense
+    new(contour_enum, branches)
+  end
+
+end
+
+function Contour(d::ContourEnum; tmax=0.0, β=0.0)
+  if d == full_contour
+    branches = [Branch(forward_branch, tmax), Branch(backward_branch, tmax), Branch(imaginary_branch, β)]
+  elseif d == keldysh_contour
+    branches = [Branch(forward_branch, tmax), Branch(backward_branch, tmax)]
+  else
+    branches = [Branch(imaginary_branch, β)]
+  end
+  return Contour(branches)
+end
+
+function nbranches(c::ContourEnum)
+  if c == full_contour
+    return 3
+  elseif c == keldysh_contour
+    return 2
+  else
+    return 1
+  end
+end
+
+function nbranches(c::Contour)
+  return nbranches(c.domain)
+end
+
 function branch_set(c::ContourEnum)
   if c == full_contour
     return Set([forward_branch, backward_branch, imaginary_branch])
@@ -18,31 +55,9 @@ function get_contour_enum(branches::Set{BranchEnum})
 end
 
 function get_contour_enum(branches::AbstractVector{Branch})
-  branch_set = Set([b.domain for b in branches])
-  @assert length(branch_set) == length(branches) "branches must be unique"
-  return get_contour_enum(branch_set)
-end
-
-struct Contour
-  domain::ContourEnum
-  branches::Vector{Branch}
-
-  function Contour(branches::AbstractVector{Branch})
-    contour_enum = get_contour_enum(branches)
-    new(contour_enum, branches)
-  end
-
-end
-
-function Contour(d::ContourEnum; tmax=0.0, β=0.0)
-  if d == full_contour
-    branches = [Branch(forward_branch, tmax), Branch(backward_branch, tmax), Branch(imaginary_branch, β)]
-  elseif d == keldysh_contour
-    branches = [Branch(forward_branch, tmax), Branch(backward_branch, tmax)]
-  else
-    branches = [Branch(imaginary_branch, β)]
-  end
-  return Contour(branches)
+  branch_enums = Set([b.domain for b in branches])
+  @assert length(branch_enums) == length(branches) "branches must be unique"
+  return get_contour_enum(branch_enums)
 end
 
 function twist(c::Contour)
