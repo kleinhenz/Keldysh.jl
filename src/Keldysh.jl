@@ -10,7 +10,7 @@ export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoin
 export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, twist!, twist, heaviside, θ, get_branch
 
 # TimeGrid functions
-export TimeGrid
+export TimeGrid, TimeGridPoint
 
 # generate_gf functions
 export make_gf, gf_1level, dos2gf

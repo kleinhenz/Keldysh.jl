@@ -3,21 +3,28 @@
 using Keldysh, Test, LinearAlgebra
 
 @testset "branch" begin
-  tmax = 2.0
-  beta = 3.0
+  let tmax = 2.0, β = 3.0
+    fwd = Branch(forward_branch, tmax)
+    back = Branch(backward_branch, tmax)
+    imag = Branch(imaginary_branch, β)
 
-  fwd = Branch(forward_branch, tmax)
-  back = Branch(backward_branch, tmax)
-  imag = Branch(imaginary_branch, beta)
+    @test fwd.domain == forward_branch
+    @test back.domain == backward_branch
+    @test imag.domain == imaginary_branch
 
-  @test fwd.domain == forward_branch
-  @test back.domain == backward_branch
-  @test imag.domain == imaginary_branch
+    @test length(fwd) == tmax
+    @test length(back) == tmax
+    @test length(imag) == β
 
-  @test length(fwd) == tmax
-  @test length(back) == tmax
-  @test length(imag) == beta
+    @test Keldysh.get_point(fwd, 0.0).val == 0.0
+    @test Keldysh.get_point(fwd, 1.0).val == tmax
 
+    @test Keldysh.get_point(back, 0.0).val == tmax
+    @test Keldysh.get_point(back, 1.0).val == 0.0
+
+    @test Keldysh.get_point(imag, 0.0).val == 0.0
+    @test Keldysh.get_point(imag, 1.0).val == -1.0im * β
+  end
 end
 
 @testset "contour" begin
@@ -33,22 +40,24 @@ end
 end
 
 @testset "time_grid" begin
-  let tmax = 2.0, β = 5.0
+  let tmax = 2.0, β = 5.0, npts_real=21, npts_imag=51
     c = Contour(full_contour, tmax=tmax, β=β)
-    grid = TimeGrid(c, npts_real=21, npts_imag=51)
+    grid = TimeGrid(c, npts_real=npts_real, npts_imag=npts_imag)
     @test grid.step[1] ≈ 0.1
     @test grid.step[2] ≈ -0.1
     @test grid.step[3] ≈ -0.1im
+    @test map(p -> p.idx, grid.points) == 1:(2npts_real + npts_imag)
 
     @test β == Keldysh.get_beta(grid, nothing)
     @test_throws AssertionError Keldysh.get_beta(grid, β)
   end
 
-  let tmax = 2.0, β = 5.0
+  let tmax = 2.0, β = 5.0, npts_real = 21
     c = Contour(keldysh_contour, tmax=tmax)
-    grid = TimeGrid(c, npts_real=21)
+    grid = TimeGrid(c, npts_real=npts_real)
     @test grid.step[1] ≈ 0.1
     @test grid.step[2] ≈ -0.1
+    @test map(p -> p.idx, grid.points) == 1:(2npts_real)
 
     @test_throws AssertionError Keldysh.get_beta(grid, nothing)
     @test β == Keldysh.get_beta(grid, β)
@@ -63,11 +72,11 @@ end
     dos = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
 
     @time hyb1 = make_gf(grid, time_invariant=false) do t1, t2
-      dos2gf(dos, t1, t2, β=β)
+      dos2gf(dos, t1.val, t2.val, β=β)
     end
 
     @time hyb2 = make_gf(grid, time_invariant=true) do t1, t2
-      dos2gf(dos, t1, t2, β=β)
+      dos2gf(dos, t1.val, t2.val, β=β)
     end
 
     @test hyb1 ≈ hyb2

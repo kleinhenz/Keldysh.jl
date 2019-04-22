@@ -16,8 +16,8 @@ function make_gf(f, grid; time_invariant = false)
     δ = minimum(abs.(grid.step)) / 10
 
     make_key = (t1, t2) -> begin
-      theta = θ(t1, t2)
-      Δt = t1.val - t2.val
+      theta = θ(t1.val, t2.val)
+      Δt = t1.val.val - t2.val.val
       return (Complex{Int}(round(Δt / δ)), theta)
     end
 
@@ -43,10 +43,14 @@ function make_gf(f, grid; time_invariant = false)
   return gf
 end
 
+function gf_1level(t1::BranchPoint, t2::BranchPoint; ϵ, β)
+    -1.0im * (θ(t1, t2) - fermi(ϵ, β)) * exp(-1.0im * (t1.val - t2.val) * ϵ)
+end
+
 function gf_1level(grid::TimeGrid; ϵ, β=nothing)
   β = get_beta(grid, β)
   make_gf(grid) do t1, t2
-    -1.0im * (θ(t1, t2) - fermi(ϵ, β)) * exp(-1.0im * (t1.val - t2.val) * ϵ)
+    gf_1level(t1.val, t2.val, ϵ=ϵ, β=β)
   end
 end
 
@@ -67,11 +71,6 @@ end
 function dos2gf(dos, grid::TimeGrid; β=nothing, integrator=dos_integrator)
   β = get_beta(grid, β)
   make_gf(grid, time_invariant=true) do t1, t2
-    dos2gf(dos, t1, t2, β=β, integrator=integrator)
+    dos2gf(dos, t1.val, t2.val, β=β, integrator=integrator)
   end
-end
-
-function bare_prop(grid::TimeGrid; levels, β=nothing, rho=nothing)
-  @assert (rho === nothing && grid.contour.domain != keldysh_contour) || (rho !== nothing && grid.contour.domain == keldysh_contour)
-  β = get_beta(grid, β)
 end
