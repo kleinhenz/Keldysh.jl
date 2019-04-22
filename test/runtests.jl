@@ -48,6 +48,11 @@ end
     @test grid.step[3] ≈ -0.1im
     @test map(p -> p.idx, grid.points) == 1:(2npts_real + npts_imag)
 
+    for i in 1:3
+      @test grid.branch_bounds[i][1].val == Keldysh.get_point(grid.contour.branches[i], 0.0)
+      @test grid.branch_bounds[i][2].val == Keldysh.get_point(grid.contour.branches[i], 1.0)
+    end
+
     @test β == Keldysh.get_beta(grid, nothing)
     @test_throws AssertionError Keldysh.get_beta(grid, β)
   end
@@ -58,6 +63,11 @@ end
     @test grid.step[1] ≈ 0.1
     @test grid.step[2] ≈ -0.1
     @test map(p -> p.idx, grid.points) == 1:(2npts_real)
+
+    for i in 1:2
+      @test grid.branch_bounds[i][1].val == Keldysh.get_point(grid.contour.branches[i], 0.0)
+      @test grid.branch_bounds[i][2].val == Keldysh.get_point(grid.contour.branches[i], 1.0)
+    end
 
     @test_throws AssertionError Keldysh.get_beta(grid, nothing)
     @test β == Keldysh.get_beta(grid, β)
