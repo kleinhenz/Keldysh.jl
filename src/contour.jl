@@ -3,11 +3,15 @@
 struct Contour
   domain::ContourEnum
   branches::Vector{Branch}
+  branch_indices::NTuple{3, Int} # branches[branch_indices[Int(BranchEnum)]].domain == BranchEnum
 
   function Contour(branches::AbstractVector{Branch})
     contour_enum = get_contour_enum(branches)
-    # TODO assert that these branches make sense
-    new(contour_enum, branches)
+    branch_indices::Vector{Int} = [-1, -1, -1]
+    for (i, b) in enumerate(branches)
+      branch_indices[Int(b.domain)] = i
+    end
+    new(contour_enum, branches, Tuple(branch_indices))
   end
 
 end
@@ -65,10 +69,8 @@ function twist(c::Contour)
 end
 
 function get_branch(c::Contour, d::BranchEnum)
-  for b in c.branches
-    b.domain == d && return b
-  end
-  return nothing
+  idx = c.branch_indices[Int(d)]
+  return idx == -1 ? nothing : c.branches[idx]
 end
 
 """

@@ -28,19 +28,24 @@ using Keldysh, Test, LinearAlgebra
 end
 
 @testset "contour" begin
-  c = Contour(full_contour, tmax=2.0, β=5.0)
-  for i in 1:3
-    @test c.branches[i].domain == BranchEnum(i)
-  end
+  let c = Contour(full_contour, tmax=2.0, β=5.0)
+    for i in 1:3
+      @test c.branches[i].domain == BranchEnum(i)
+    end
 
-  c = twist(c)
-  for i in 1:3
-    @test c.branches[i].domain == BranchEnum(mod1(i+1, 3))
-  end
+    c = twist(c)
+    for i in 1:3
+      @test c.branches[i].domain == BranchEnum(mod1(i+1, 3))
+    end
 
-  @test nbranches(full_contour) == 3
-  @test nbranches(keldysh_contour) == 2
-  @test nbranches(imaginary_contour) == 1
+    @test nbranches(full_contour) == 3
+    @test nbranches(keldysh_contour) == 2
+    @test nbranches(imaginary_contour) == 1
+
+    for b in instances(BranchEnum)
+      @test get_branch(c, b).domain == b
+    end
+  end
 end
 
 @testset "time_grid" begin
