@@ -64,6 +64,8 @@ end
 
     @test β == Keldysh.get_beta(grid, nothing)
     @test_throws AssertionError Keldysh.get_beta(grid, β)
+
+    @test Keldysh.integrate(t -> 1, grid) ≈ -1.0im * β
   end
 
   let tmax = 2.0, β = 5.0, npts_real = 21
@@ -81,6 +83,33 @@ end
     @test_throws AssertionError Keldysh.get_beta(grid, nothing)
     @test β == Keldysh.get_beta(grid, β)
   end
+
+  let tmax = 2.0, c = Contour(keldysh_contour, tmax=tmax)
+    grid = TimeGrid(c, npts_real=51)
+
+    Δt1 = make_gf(grid, time_invariant=false) do t1, t2
+      t1.val.val - t2.val.val
+    end
+
+    Δt2 = make_gf(grid, time_invariant=false) do t1, t2
+      Keldysh.integrate(t -> 1.0, grid, t1, t2)
+    end
+    @test Δt1 ≈ Δt2
+  end
+
+  let tmax = 2.0, c = twist(Contour(keldysh_contour, tmax=tmax))
+    grid = TimeGrid(c, npts_real=51)
+
+    Δt1 = make_gf(grid, time_invariant=false) do t1, t2
+      t1.val.val - t2.val.val
+    end
+
+    Δt2 = make_gf(grid, time_invariant=false) do t1, t2
+      Keldysh.integrate(t -> 1.0, grid, t1, t2)
+    end
+    @test Δt1 ≈ Δt2
+  end
+
 end
 
 @testset "generate_gf" begin

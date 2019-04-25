@@ -29,3 +29,38 @@ struct TimeGrid
     return new(c, points, step, branch_bounds)
   end
 end
+
+function integrate(f, grid::TimeGrid)
+  integrate(f, grid, grid.points[end], grid.points[1])
+end
+
+function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
+  # wrap around
+  if (t1.idx < t2.idx)
+    return integrate(f, grid, t1, grid.points[1]) + integrate(f, grid, grid.points[end], t2)
+  end
+
+  T = typeof(fieldtype(BranchPoint, :val)(0.0) * f(t2))
+  s = zero(T)
+
+  first_branch_idx = grid.contour.branch_indices[Int(t2.val.domain)]
+  last_branch_idx =  grid.contour.branch_indices[Int(t1.val.domain)]
+
+  first = t2
+  for b in first_branch_idx:last_branch_idx
+    Δt = grid.step[b]
+    last = (b == last_branch_idx ? t1 : grid.branch_bounds[b][2])
+    m = last.idx - first.idx + 1
+    @assert first.val.domain == last.val.domain
+    if (m >= 2) #trapezoid rule
+      sb = zero(T)
+      sb += 0.5 * (f(grid.points[first.idx]) + f(grid.points[last.idx]))
+      for t in grid.points[(first.idx+1):(last.idx-1)]
+        sb += f(t)
+      end
+      s += (Δt * sb)
+    end
+    b == last_branch_idx || (first = grid.points[last.idx + 1])
+  end
+  return s
+end
