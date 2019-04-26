@@ -40,8 +40,7 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
     return integrate(f, grid, t1, grid.points[1]) + integrate(f, grid, grid.points[end], t2)
   end
 
-  T = typeof(fieldtype(BranchPoint, :val)(0.0) * f(t2))
-  s = zero(T)
+  s = zero(fieldtype(BranchPoint, :val)(0.0) * f(t2)) # extra evaluation just to get the type
 
   first_branch_idx = grid.contour.branch_indices[Int(t2.val.domain)]
   last_branch_idx =  grid.contour.branch_indices[Int(t1.val.domain)]
@@ -53,8 +52,7 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
     m = last.idx - first.idx + 1
     @assert first.val.domain == last.val.domain
     if (m >= 2) #trapezoid rule
-      sb = zero(T)
-      sb += 0.5 * (f(grid.points[first.idx]) + f(grid.points[last.idx]))
+      sb = 0.5 * (f(grid.points[first.idx]) + f(grid.points[last.idx]))
       for t in grid.points[(first.idx+1):(last.idx-1)]
         sb += f(t)
       end
