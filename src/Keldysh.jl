@@ -7,7 +7,7 @@ export fermi
 export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoint, Branch, get_point
 
 # Contour functions
-export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, twist!, twist, heaviside, θ, get_branch, nbranches
+export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, twist, heaviside, θ, get_branch, nbranches
 
 # TimeGrid functions
 export TimeGrid, TimeGridPoint

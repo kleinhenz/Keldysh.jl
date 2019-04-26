@@ -77,25 +77,14 @@ end
 θ(t1, t2) = t1 >= t2 ? 1.0 : 0.0
 """
 function heaviside(c::Contour, t1::BranchPoint, t2::BranchPoint)
-  if t1.domain == t2.domain
-    return t1.ref >= t2.ref
-  else
-    for b in c.branches
-      b.domain == t1.domain && return true
-      b.domain == t2.domain && return false
-    end
-  end
+  t1.domain == t2.domain ? t1.ref >= t2.ref : c.branch_indices[t1.domain] > c.branch_indices[t2.domain]
 end
 
 """
 Heaviside function on standard keldysh contour
 """
 function heaviside(t1::BranchPoint, t2::BranchPoint)
-  if t1.domain == t2.domain
-    return t1.ref >= t2.ref
-  else
-    return t1.domain > t2.domain
-  end
+  t1.domain == t2.domain ?  t1.ref >= t2.ref : t1.domain > t2.domain
 end
 
 const θ = heaviside
