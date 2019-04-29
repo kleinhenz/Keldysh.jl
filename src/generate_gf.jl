@@ -74,3 +74,17 @@ function dos2gf(dos, grid::TimeGrid; β=nothing, integrator=dos_integrator)
     dos2gf(dos, t1.val, t2.val, β=β, integrator=integrator)
   end
 end
+
+"""
+`flat_dos(;ν=1.0, D=5.0)`
+
+return flat band dos with half-bandwith D and inverse cutoff width ν centered at zero
+"""
+flat_dos(;ν=1.0, D=5.0) = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
+
+"""
+`gaussian_dos(; ϵ=1.0, ν=1.0)`
+
+return normalized gaussian dos centered at ϵ with width ν
+"""
+gaussian_dos(; ϵ=1.0, ν=1.0) = ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν))
