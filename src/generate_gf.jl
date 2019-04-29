@@ -10,7 +10,7 @@ function get_beta(grid::TimeGrid, β)
 end
 
 function make_gf(f, grid; time_invariant = false)
-  gf = Array{ComplexF64}(undef, length(grid.points), length(grid.points))
+  gf = Array{ComplexF64}(undef, length(grid), length(grid))
 
   if time_invariant
     δ = minimum(abs.(grid.step)) / 10
@@ -23,21 +23,21 @@ function make_gf(f, grid; time_invariant = false)
 
     cache = Dict{Tuple{Complex{Int}, Bool}, ComplexF64}()
     cache_hits = 0
-    for (i, t1) in enumerate(grid.points)
-      for (j, t2) in enumerate(grid.points)
+    for t1 in grid
+      for t2 in grid
         key = make_key(t1, t2)
         if key ∈ keys(cache)
-          gf[i,j] = cache[key]
+          gf[t1.idx,t2.idx] = cache[key]
           cache_hits += 1
         else
           val = f(t1, t2)
           cache[key] = val
-          gf[i,j] = val
+          gf[t1.idx,t2.idx] = val
         end
       end
     end
   else
-    gf .= f.(grid.points, permutedims(grid.points))
+    gf .= f.(grid, permutedims(grid))
   end
 
   return gf

@@ -1,9 +1,11 @@
+import Base.size, Base.getindex, Base.setindex!, Base.IndexStyle
+
 struct TimeGridPoint
   idx::Int64
   val::BranchPoint
 end
 
-struct TimeGrid
+struct TimeGrid <: AbstractVector{TimeGridPoint}
   contour::Contour
   points::Vector{TimeGridPoint}
   step::Vector{ComplexF64}
@@ -30,15 +32,16 @@ struct TimeGrid
   end
 end
 
-function integrate(f, grid::TimeGrid)
-  integrate(f, grid, grid.points[end], grid.points[1])
-end
+
+### AbstractArray Interface ###
+IndexStyle(::Type{<:TimeGrid}) = IndexLinear()
+size(grid::TimeGrid) = size(grid.points)
+getindex(grid::TimeGrid, i::Int) = grid.points[i]
+setindex!(grid::TimeGrid, v::TimeGridPoint, i::Int) = grid.points[i] = v
 
 function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
   # wrap around
-  if (t1.idx < t2.idx)
-    return integrate(f, grid, t1, grid.points[1]) + integrate(f, grid, grid.points[end], t2)
-  end
+  (t1.idx < t2.idx) && return integrate(f, grid, t1, grid[1]) + integrate(f, grid, grid[end], t2)
 
   s = zero(fieldtype(BranchPoint, :val)(0.0) * f(t2)) # extra evaluation just to get the type
 
@@ -52,13 +55,15 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
     m = last.idx - first.idx + 1
     @assert first.val.domain == last.val.domain
     if (m >= 2) #trapezoid rule
-      sb = 0.5 * (f(grid.points[first.idx]) + f(grid.points[last.idx]))
-      for t in grid.points[(first.idx+1):(last.idx-1)]
+      sb = 0.5 * (f(grid[first.idx]) + f(grid[last.idx]))
+      for t in grid[(first.idx+1):(last.idx-1)]
         sb += f(t)
       end
       s += (Δt * sb)
     end
-    b == last_branch_idx || (first = grid.points[last.idx + 1])
+    b == last_branch_idx || (first = grid[last.idx + 1])
   end
   return s
 end
+
+integrate(f, grid::TimeGrid) = integrate(f, grid, grid[end], grid[1])
