@@ -16,14 +16,14 @@ using Keldysh, Test, LinearAlgebra
     @test length(back) == tmax
     @test length(imag) == β
 
-    @test Keldysh.get_point(fwd, 0.0).val == 0.0
-    @test Keldysh.get_point(fwd, 1.0).val == tmax
+    @test fwd(0.0).val == 0.0
+    @test fwd(1.0).val == tmax
 
-    @test Keldysh.get_point(back, 0.0).val == tmax
-    @test Keldysh.get_point(back, 1.0).val == 0.0
+    @test back(0.0).val == tmax
+    @test back(1.0).val == 0.0
 
-    @test Keldysh.get_point(imag, 0.0).val == 0.0
-    @test Keldysh.get_point(imag, 1.0).val == -1.0im * β
+    @test imag(0.0).val == 0.0
+    @test imag(1.0).val == -1.0im * β
   end
 end
 
@@ -58,8 +58,8 @@ end
     @test map(p -> p.idx, grid) == 1:(2npts_real + npts_imag)
 
     for i in 1:3
-      @test grid.branch_bounds[i][1].val == Keldysh.get_point(grid.contour.branches[i], 0.0)
-      @test grid.branch_bounds[i][2].val == Keldysh.get_point(grid.contour.branches[i], 1.0)
+      @test grid.branch_bounds[i][1].val == grid.contour.branches[i](0.0)
+      @test grid.branch_bounds[i][2].val == grid.contour.branches[i](1.0)
     end
 
     @test β == Keldysh.get_beta(grid, nothing)
@@ -76,8 +76,8 @@ end
     @test map(p -> p.idx, grid) == 1:(2npts_real)
 
     for i in 1:2
-      @test grid.branch_bounds[i][1].val == Keldysh.get_point(grid.contour.branches[i], 0.0)
-      @test grid.branch_bounds[i][2].val == Keldysh.get_point(grid.contour.branches[i], 1.0)
+      @test grid.branch_bounds[i][1].val == grid.contour.branches[i](0.0)
+      @test grid.branch_bounds[i][2].val == grid.contour.branches[i](1.0)
     end
 
     @test_throws AssertionError Keldysh.get_beta(grid, nothing)

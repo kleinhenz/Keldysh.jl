@@ -21,7 +21,7 @@ struct TimeGrid <: AbstractVector{TimeGridPoint}
       @assert npts > 1 "every branch must have at least two points (b = $b, npts = $npts)"
 
       indices = (1:npts) .+ length(points)
-      branch_points = get_point.(Ref(b), range(0, 1, length=npts))
+      branch_points = b.(range(0, 1, length=npts))
       time_grid_points = TimeGridPoint.(indices, branch_points)
 
       append!(points, time_grid_points)

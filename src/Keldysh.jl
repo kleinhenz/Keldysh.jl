@@ -4,7 +4,7 @@ module Keldysh
 export fermi
 
 # Branch functions
-export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoint, Branch, get_point
+export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoint, Branch
 
 # Contour functions
 export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, twist, heaviside, θ, get_branch, nbranches

@@ -32,6 +32,8 @@ function get_point(b::Branch, ref::Real)
   return BranchPoint(ref * b.max_val + (1 - ref) * b.min_val, ref, b.domain)
 end
 
+(b::Branch)(ref::Real) = get_point(b, ref)
+
 function length(b::Branch)
   return abs(b.max_val - b.min_val)
 end
