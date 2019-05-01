@@ -43,7 +43,7 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
   # wrap around
   (t1.idx < t2.idx) && return integrate(f, grid, t1, grid[1]) + integrate(f, grid, grid[end], t2)
 
-  s = zero(fieldtype(BranchPoint, :val)(0.0) * f(t2)) # extra evaluation just to get the type
+  integral = zero(fieldtype(BranchPoint, :val)(0.0) * f(t2)) # extra evaluation just to get the type
 
   first_branch_idx = grid.contour.branch_indices[Int(t2.val.domain)]
   last_branch_idx =  grid.contour.branch_indices[Int(t1.val.domain)]
@@ -52,18 +52,17 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
   for b in first_branch_idx:last_branch_idx
     Δt = grid.step[b]
     last = (b == last_branch_idx ? t1 : grid.branch_bounds[b][2])
-    m = last.idx - first.idx + 1
     @assert first.val.domain == last.val.domain
-    if (m >= 2) #trapezoid rule
-      sb = 0.5 * (f(grid[first.idx]) + f(grid[last.idx]))
+    if (last.idx != first.idx) #trapezoid rule
+      branch_integral = 0.5 * (f(grid[first.idx]) + f(grid[last.idx]))
       for t in grid[(first.idx+1):(last.idx-1)]
-        sb += f(t)
+        branch_integral += f(t)
       end
-      s += (Δt * sb)
+      integral += (Δt * branch_integral)
     end
     b == last_branch_idx || (first = grid[last.idx + 1])
   end
-  return s
+  return integral
 end
 
 integrate(f, grid::TimeGrid) = integrate(f, grid, grid[end], grid[1])
