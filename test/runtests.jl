@@ -117,7 +117,7 @@ end
 
     c = twist(Contour(full_contour, tmax=tmax, β=β))
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
-    dos = Keldysh.flat_dos(ν=ν, D=D)
+    dos = ω -> Keldysh.flat_dos(ω, ν=ν, D=D)
 
     @time hyb1 = make_gf(grid, time_invariant=false) do t1, t2
       dos2gf(dos, t1.val, t2.val, β=β)
@@ -133,7 +133,7 @@ end
   let tmax = 1.0, β = 1.0, ν = 1/1000, ϵ = 2.0
     c = twist(Contour(full_contour, tmax=tmax, β=β))
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
-    dos = Keldysh.gaussian_dos(ν=ν, ϵ=ϵ)
+    dos = ω -> Keldysh.gaussian_dos(ω, ν=ν, ϵ=ϵ)
 
     hyb1 = dos2gf(dos, grid)
     hyb2 = gf_1level(grid, ϵ=ϵ)

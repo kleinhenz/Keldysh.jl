@@ -9,10 +9,7 @@ function get_beta(grid::TimeGrid, β)
   β === nothing ? length(im_b) : β
 end
 
-function make_gf(f, grid; time_invariant = false)
-  gf = Array{ComplexF64}(undef, length(grid), length(grid))
-
-  if time_invariant
+function _make_time_invariant_gf(f, grid)
     δ = minimum(abs.(grid.step)) / 10
 
     make_key = (t1, t2) -> begin
@@ -21,26 +18,21 @@ function make_gf(f, grid; time_invariant = false)
       return (Complex{Int}(round(Δt / δ)), theta)
     end
 
-    cache = Dict{Tuple{Complex{Int}, Bool}, ComplexF64}()
-    cache_hits = 0
-    for t1 in grid
-      for t2 in grid
-        key = make_key(t1, t2)
-        if key ∈ keys(cache)
-          gf[t1.idx,t2.idx] = cache[key]
-          cache_hits += 1
-        else
-          val = f(t1, t2)
-          cache[key] = val
-          gf[t1.idx,t2.idx] = val
-        end
-      end
-    end
-  else
-    gf .= f.(grid, permutedims(grid))
-  end
+    T = typeof(f(grid[1], grid[1])) # extra evaluation to get type for cache
 
-  return gf
+    cache = Dict{Tuple{Complex{Int}, Bool}, T}()
+
+    g = (t1, t2) -> begin
+      key = make_key(t1, t2)
+      key ∈ keys(cache) ? cache[key] : cache[key] = f(t1, t2)
+    end
+
+    g.(grid, permutedims(grid))
+end
+
+function make_gf(f, grid; time_invariant = false)
+  time_invariant && return _make_time_invariant_gf(f, grid)
+  return f.(grid, permutedims(grid))
 end
 
 function gf_1level(t1::BranchPoint, t2::BranchPoint; ϵ, β)
@@ -80,11 +72,11 @@ end
 
 return flat band dos with half-bandwith D and inverse cutoff width ν centered at zero
 """
-flat_dos(;ν=1.0, D=5.0) = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
+flat_dos(ω; ν=1.0, D=5.0) = (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
 
 """
 `gaussian_dos(; ϵ=1.0, ν=1.0)`
 
 return normalized gaussian dos centered at ϵ with width ν
 """
-gaussian_dos(; ϵ=1.0, ν=1.0) = ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν))
+gaussian_dos(ω; ϵ=1.0, ν=1.0) = (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν))
