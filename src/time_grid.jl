@@ -1,5 +1,3 @@
-import Base.size, Base.getindex, Base.setindex!, Base.IndexStyle
-
 struct TimeGridPoint
   idx::Int64
   val::BranchPoint
@@ -38,6 +36,14 @@ IndexStyle(::Type{<:TimeGrid}) = IndexLinear()
 size(grid::TimeGrid) = size(grid.points)
 getindex(grid::TimeGrid, i::Int) = grid.points[i]
 setindex!(grid::TimeGrid, v::TimeGridPoint, i::Int) = grid.points[i] = v
+
+function branch_bounds(grid::TimeGrid, b::BranchEnum)
+  return grid.branch_bounds[grid.contour.branch_indices[Int(b)]]
+end
+
+function step(grid::TimeGrid, b::BranchEnum)
+  return grid.step[grid.contour.branch_indices[Int(b)]]
+end
 
 function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
   # wrap around

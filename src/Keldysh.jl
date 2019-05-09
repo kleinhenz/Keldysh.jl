@@ -10,15 +10,21 @@ export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoin
 export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, twist, heaviside, θ, get_branch, nbranches
 
 # TimeGrid functions
-export TimeGrid, TimeGridPoint
+export TimeGrid, TimeGridPoint, branch_bounds
+
+# TimeGF functions
+export TimeGF, TimeGFTranspose
 
 # generate_gf functions
-export make_gf, gf_1level, dos2gf
+export gf_1level, dos2gf
+
+import Base.size, Base.getindex, Base.setindex!, Base.IndexStyle, Base.step, Base.length, Base.similar, Base.adjoint
 
 include("util.jl")
 include("branch.jl")
 include("contour.jl")
 include("time_grid.jl")
+include("time_gf.jl")
 include("generate_gf.jl")
 
 end # module

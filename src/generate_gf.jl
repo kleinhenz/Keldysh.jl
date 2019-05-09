@@ -9,39 +9,13 @@ function get_beta(grid::TimeGrid, β)
   β === nothing ? length(im_b) : β
 end
 
-function _make_time_invariant_gf(f, grid)
-    δ = minimum(abs.(grid.step)) / 10
-
-    make_key = (t1, t2) -> begin
-      theta = θ(t1.val, t2.val)
-      Δt = t1.val.val - t2.val.val
-      return (Complex{Int}(round(Δt / δ)), theta)
-    end
-
-    T = typeof(f(grid[1], grid[1])) # extra evaluation to get type for cache
-
-    cache = Dict{Tuple{Complex{Int}, Bool}, T}()
-
-    g = (t1, t2) -> begin
-      key = make_key(t1, t2)
-      key ∈ keys(cache) ? cache[key] : cache[key] = f(t1, t2)
-    end
-
-    g.(grid, permutedims(grid))
-end
-
-function make_gf(f, grid; time_invariant = false)
-  time_invariant && return _make_time_invariant_gf(f, grid)
-  return f.(grid, permutedims(grid))
-end
-
 function gf_1level(t1::BranchPoint, t2::BranchPoint; ϵ, β)
     -1.0im * (θ(t1, t2) - fermi(ϵ, β)) * exp(-1.0im * (t1.val - t2.val) * ϵ)
 end
 
 function gf_1level(grid::TimeGrid; ϵ, β=nothing)
   β = get_beta(grid, β)
-  make_gf(grid) do t1, t2
+  TimeGF(grid) do t1, t2
     gf_1level(t1.val, t2.val, ϵ=ϵ, β=β)
   end
 end
@@ -62,7 +36,7 @@ end
 
 function dos2gf(dos, grid::TimeGrid; β=nothing, integrator=dos_integrator)
   β = get_beta(grid, β)
-  make_gf(grid, time_invariant=true) do t1, t2
+  TimeGF(grid) do t1, t2
     dos2gf(dos, t1.val, t2.val, β=β, integrator=integrator)
   end
 end

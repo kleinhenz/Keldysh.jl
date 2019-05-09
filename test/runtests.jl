@@ -87,11 +87,11 @@ end
   let tmax = 2.0, c = Contour(keldysh_contour, tmax=tmax)
     grid = TimeGrid(c, npts_real=51)
 
-    Δt1 = make_gf(grid, time_invariant=false) do t1, t2
+    Δt1 = TimeGF(grid) do t1, t2
       t1.val.val - t2.val.val
     end
 
-    Δt2 = make_gf(grid, time_invariant=false) do t1, t2
+    Δt2 = TimeGF(grid) do t1, t2
       Keldysh.integrate(t -> 1.0, grid, t1, t2)
     end
     @test Δt1 ≈ Δt2
@@ -100,11 +100,11 @@ end
   let tmax = 2.0, c = twist(Contour(keldysh_contour, tmax=tmax))
     grid = TimeGrid(c, npts_real=51)
 
-    Δt1 = make_gf(grid, time_invariant=false) do t1, t2
+    Δt1 = TimeGF(grid) do t1, t2
       t1.val.val - t2.val.val
     end
 
-    Δt2 = make_gf(grid, time_invariant=false) do t1, t2
+    Δt2 = TimeGF(grid) do t1, t2
       Keldysh.integrate(t -> 1.0, grid, t1, t2)
     end
     @test Δt1 ≈ Δt2
@@ -113,23 +113,6 @@ end
 end
 
 @testset "generate_gf" begin
-  let tmax = 1.0, β = 1.0, D=10.0, ν = 10.0
-
-    c = twist(Contour(full_contour, tmax=tmax, β=β))
-    grid = TimeGrid(c, npts_real=51, npts_imag=51)
-    dos = ω -> Keldysh.flat_dos(ω, ν=ν, D=D)
-
-    @time hyb1 = make_gf(grid, time_invariant=false) do t1, t2
-      dos2gf(dos, t1.val, t2.val, β=β)
-    end
-
-    @time hyb2 = make_gf(grid, time_invariant=true) do t1, t2
-      dos2gf(dos, t1.val, t2.val, β=β)
-    end
-
-    @test hyb1 ≈ hyb2
-  end
-
   let tmax = 1.0, β = 1.0, ν = 1/1000, ϵ = 2.0
     c = twist(Contour(full_contour, tmax=tmax, β=β))
     grid = TimeGrid(c, npts_real=51, npts_imag=51)

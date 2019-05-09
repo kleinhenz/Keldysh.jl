@@ -1,5 +1,3 @@
-import Base.length
-
 @enum BranchEnum forward_branch=1 backward_branch=2 imaginary_branch=3
 
 struct BranchPoint
