@@ -18,7 +18,7 @@ export TimeGF, TimeGFTranspose
 # generate_gf functions
 export gf_1level, dos2gf
 
-import Base.size, Base.getindex, Base.setindex!, Base.IndexStyle, Base.step, Base.length, Base.similar, Base.adjoint
+import Base.size, Base.getindex, Base.setindex!, Base.IndexStyle, Base.step, Base.length, Base.similar, Base.adjoint, Base.read, Base.write
 
 include("util.jl")
 include("branch.jl")
@@ -26,5 +26,6 @@ include("contour.jl")
 include("time_grid.jl")
 include("time_gf.jl")
 include("generate_gf.jl")
+include("hdf5.jl")
 
 end # module
