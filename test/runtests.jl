@@ -65,7 +65,7 @@ end
     @test β == Keldysh.get_beta(grid, nothing)
     @test_throws AssertionError Keldysh.get_beta(grid, β)
 
-    @test Keldysh.integrate(t -> 1, grid) ≈ -1.0im * β
+    @test integrate(t -> 1, grid) ≈ -1.0im * β
   end
 
   let tmax = 2.0, β = 5.0, npts_real = 21
@@ -92,7 +92,7 @@ end
     end
 
     Δt2 = TimeGF(grid) do t1, t2
-      Keldysh.integrate(t -> 1.0, grid, t1, t2)
+      integrate(t -> 1.0, grid, t1, t2)
     end
     @test Δt1 ≈ Δt2
   end
@@ -105,7 +105,7 @@ end
     end
 
     Δt2 = TimeGF(grid) do t1, t2
-      Keldysh.integrate(t -> 1.0, grid, t1, t2)
+      integrate(t -> 1.0, grid, t1, t2)
     end
     @test Δt1 ≈ Δt2
   end
