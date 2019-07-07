@@ -1,7 +1,7 @@
 name = "Keldysh"
 uuid = "50f2bc7e-5fd7-11e9-13c7-85fb88b4f34f"
 authors = ["Joseph Kleinhenz <kleinhenz.joseph@gmail.com>"]
-version = "0.1.0"
+version = "0.5.0"
 
 [deps]
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
