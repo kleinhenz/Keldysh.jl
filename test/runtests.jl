@@ -55,6 +55,11 @@ end
     @test grid.step[1] ≈ 0.1
     @test grid.step[2] ≈ -0.1
     @test grid.step[3] ≈ -0.1im
+
+    @test length(grid, forward_branch) == npts_real
+    @test length(grid, backward_branch) == npts_real
+    @test length(grid, imaginary_branch) == npts_imag
+
     @test map(p -> p.idx, grid) == 1:(2npts_real + npts_imag)
 
     for i in 1:3
@@ -73,6 +78,9 @@ end
     grid = TimeGrid(c, npts_real=npts_real)
     @test grid.step[1] ≈ 0.1
     @test grid.step[2] ≈ -0.1
+    @test length(grid, forward_branch) == npts_real
+    @test length(grid, backward_branch) == npts_real
+
     @test map(p -> p.idx, grid) == 1:(2npts_real)
 
     for i in 1:2

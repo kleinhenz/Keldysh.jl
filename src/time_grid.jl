@@ -41,6 +41,11 @@ function branch_bounds(grid::TimeGrid, b::BranchEnum)
   return grid.branch_bounds[grid.contour.branch_indices[Int(b)]]
 end
 
+function length(grid::TimeGrid, b::BranchEnum)
+  bounds = branch_bounds(grid, b)
+  return bounds[2].idx - bounds[1].idx + 1
+end
+
 function step(grid::TimeGrid, b::BranchEnum)
   return grid.step[grid.contour.branch_indices[Int(b)]]
 end
