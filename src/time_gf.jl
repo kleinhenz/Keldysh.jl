@@ -8,17 +8,38 @@ function TimeGF(grid::TimeGrid)
   TimeGF(zeros(ComplexF64, N, N), grid)
 end
 
-# TODO add time-invariant option
-function TimeGF(f::Function, grid::TimeGrid; lower = false)
-  N = length(grid)
-  gf = TimeGF(grid)
-  for t1 in grid
-    for t2 in grid
-      lower && t1.idx < t2.idx && continue
-      gf[t1, t2] = f(t1, t2)
+function TimeGF(f::Function, grid::TimeGrid; lower = false, time_invariant = false)
+  if time_invariant
+    δ = minimum(abs.(grid.step)) / 10
+
+    make_key = (t1, t2) -> begin
+      theta = θ(t1.val, t2.val)
+      Δt = t1.val.val - t2.val.val
+      return (Complex{Int}(round(Δt / δ)), theta)
     end
+
+    T = typeof(f(grid[1], grid[1])) # extra evaluation to get type for cache
+
+    cache = Dict{Tuple{Complex{Int}, Bool}, T}()
+
+    g = (t1, t2) -> begin
+      key = make_key(t1, t2)
+      key ∈ keys(cache) ? cache[key] : cache[key] = f(t1, t2)
+    end
+
+    return TimeGF(g, grid, lower=lower, time_invariant=false)
+  else
+    N = length(grid)
+    gf = TimeGF(grid)
+
+    for t1 in grid
+      for t2 in grid
+        lower && t1.idx < t2.idx && continue
+        gf[t1, t2] = f(t1, t2)
+      end
+    end
+    return gf
   end
-  return gf
 end
 
 ### AbstractArray Interface ###
