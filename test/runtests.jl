@@ -124,7 +124,7 @@ end
   let tmax = 1.0, β = 1.0, ν = 1/1000, ϵ = 2.0
     c = twist(Contour(full_contour, tmax=tmax, β=β))
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
-    dos = ω -> Keldysh.gaussian_dos(ω, ν=ν, ϵ=ϵ)
+    dos = Keldysh.gaussian_dos(ν=ν, ϵ=ϵ)
 
     hyb1 = dos2gf(dos, grid)
     hyb2 = gf_1level(grid, ϵ=ϵ)
@@ -134,5 +134,37 @@ end
 
     # can't also supply β if it is part of the contour
     @test_throws AssertionError dos2gf(dos, grid, β = β)
+  end
+end
+
+@testset "dos" begin
+  # Flat DOS
+  let ν=10, D=7.0, dos = Keldysh.flat_dos(ν=ν, D=D)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, (2D) / π, atol=1e-10, rtol=1e-10)
+  end
+
+  # Gaussian DOS
+  let ν = 2.0, ϵ = 1.0, dos = Keldysh.gaussian_dos(ν=ν, ϵ=ϵ)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
+  end
+
+  # Bethe DOS
+  let t=2.0, dos = Keldysh.bethe_dos(t=t)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
+  end
+
+  # Linear chain DOS
+  let t=2.0, dos = Keldysh.chain_dos(t=t)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
+  end
+
+  # Square lattice DOS
+  let t=2.0, dos = Keldysh.square_dos(t=t)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
   end
 end
