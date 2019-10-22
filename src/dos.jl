@@ -9,7 +9,7 @@ struct DOSSingularity
   position::Real
   # Asymptotic behavior of the DOS near the singularity, S_p(ω).
   # To be chosen such that \lim_{ω \to Ω_p} [D(ω) - S_p(ω)] = 0
-  asymptotics::Function
+  asymptotics
   # Integral of 'asymptotics' over ω\in[ω_{min};ω_{max}].
   integral
 end
@@ -30,7 +30,7 @@ struct SingularDOS
   ωmin::Real
   ωmax::Real
   # Regular part R(ω)
-  regular::Function
+  regular
   # List of singularities
   singularities::Vector{DOSSingularity}
 end
