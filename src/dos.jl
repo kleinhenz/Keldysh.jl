@@ -11,7 +11,7 @@ struct DOSSingularity
   # To be chosen such that \lim_{ω \to Ω_p} [D(ω) - S_p(ω)] = 0
   asymptotics::Function
   # Integral of 'asymptotics' over ω\in[ω_{min};ω_{max}].
-  integral::Real
+  integral
 end
 
 """
@@ -55,7 +55,18 @@ function dos_integrator(f, dos; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
   integral
 end
 
-"""Integrator for SingularDOS"""
+"""
+  Integrator for SingularDOS
+
+  \\int_{ω_{min}}^{ω_{max}} dω D(ω) f(ω) =
+  \\int_{ω_{min}}^{ω_{max}} dω R(ω) f(ω) +
+  \\sum_{p=1}^P \\int_{ω_{min}}^{ω_{max}} dω S_p(ω) [f(ω) - f(Ω_p)] +
+  \\sum_{p=1}^P f(Ω_p) \\int_{ω_{min}}^{ω_{max}} dω S_p(ω).
+
+  The integrands in the first two terms of the RHS are smooth,
+  and the value of the integral in the last term must be provided in the
+  `integral` field of the corresponding `DOSSingularity` structure.
+"""
 function dos_integrator(f, dos::SingularDOS; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
   limits = dos_support_limits(dos)
   val = quadgk(ω -> f(ω) * dos.regular(ω),
@@ -63,7 +74,7 @@ function dos_integrator(f, dos::SingularDOS; atol=1e-10, rtol=1e-10, maxevals=10
                atol=atol, rtol=rtol, maxevals=maxevals, order=order)[1]
   for s in dos.singularities
     f_s = f(s.position)
-    val += quadgk(ω -> abs(ω - s.position) < eps() ? .0 : s.asymptotics(ω) * (f(ω) - f_s),
+    val += quadgk(ω -> ω ≈ s.position ? .0 : s.asymptotics(ω) * (f(ω) - f_s),
                   limits[1], limits[2],
                   atol=atol, rtol=rtol, maxevals=maxevals, order=order)[1]
     val += f_s * s.integral
@@ -72,7 +83,7 @@ function dos_integrator(f, dos::SingularDOS; atol=1e-10, rtol=1e-10, maxevals=10
 end
 
 #
-# Factory functions
+# DOS factory functions
 #
 
 """
@@ -109,16 +120,62 @@ bethe_dos(; t=1.0) = SingularDOS(-2t, 2t,
   ]
 )
 
-#"""
-#`chain_dos(; t=1.0)`
-#
-#return normalized DOS of a linear chain with hopping constant t
-#"""
-#chain_dos(; t=1.0) = (1.0 / (2 * π * t)) / sqrt(1 - (ω / (2t))^2)
-#
-#"""
-#`square_dos(; t=1.0)`
-#
-#return normalized DOS of a 2D square lattice with hopping constant t
-#"""
-#square_dos(; t=1.0) = (1.0 / (2 * π^2 * t)) * Elliptic.K(1 - (ω / (4t))^2)
+"""
+`chain_dos(; t=1.0)`
+
+return normalized DOS of a linear chain with hopping constant t
+"""
+chain_dos(; t=1.0) = SingularDOS(-2t, 2t,
+  ω -> begin
+    if ω == -2t || ω == 2*t
+      -3 / (8*π*t)
+    else
+      x = ω / (2t)
+      rp = sqrt(2 * (1 - x))
+      # The second term regularizes the derivative of near ω = 2t to ease integration
+      sp = 1 / (2*π*t * rp) + rp / (16*π*t)
+
+      rm = sqrt(2 * (1 + x))
+      # The second term regularizes the derivative near ω = -2t to ease integration
+      sm = 1 / (2*π*t * rm) + rm / (16*π*t)
+
+      (1 / (2*π*t)) / sqrt(1 - x*x) - sp - sm
+    end
+  end,
+  [
+    DOSSingularity(-2t, ω -> begin
+                          x = ω / (2t)
+                          s = sqrt(2 * (1 + x))
+                          # The second term regularizes the derivative
+                          1 / (2*π*t*s) + s / (16*π*t)
+                        end,
+                    7 / (3*π)),
+    DOSSingularity( 2t, ω -> begin
+                          x = ω / (2t)
+                          s = sqrt(2 * (1 - x))
+                          # The second term regularizes the derivative
+                          1 / (2*π*t*s) + s / (16*π*t)
+                        end,
+                    7 / (3*π))
+  ]
+)
+
+"""
+`square_dos(; t=1.0)`
+
+return normalized DOS of a 2D square lattice with hopping constant t
+"""
+square_dos(; t=1.0) = SingularDOS(-4t, 4t,
+  ω -> begin
+    if ω ≈ 0
+      0
+    else
+      x = ω / (4t)
+      (1 / (2 * π^2 * t)) * (Elliptic.K(1 - x^2) + log(abs(x) / 4));
+    end
+  end,
+  [
+    DOSSingularity(0, ω -> -1 / (2 * π^2 * t) * log(abs(ω) / (16t)),
+                   4 / (π^2) * (1 + 2 * log(2)))
+  ]
+)

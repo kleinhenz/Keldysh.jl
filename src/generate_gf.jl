@@ -26,9 +26,7 @@ function dos2gf(dos, t1::BranchPoint, t2::BranchPoint; β, integrator = dos_inte
     return -1.0im * (2 * theta - 1) * integrator(f, dos)
 end
 
-function dos2gf(dos, grid::TimeGrid;
-                β=nothing, integrator=dos_integrator,
-                ωmin = -Inf, ωmax = Inf, singularities = Real[])
+function dos2gf(dos, grid::TimeGrid; β=nothing, integrator=dos_integrator)
   β = get_beta(grid, β)
   TimeGF(grid) do t1, t2
     dos2gf(dos, t1.val, t2.val, β=β, integrator=integrator)

@@ -157,14 +157,14 @@ end
   end
 
   # Linear chain DOS
-  #let t=2.0, dos = Keldysh.chain_dos(t=t)
-  #  n = dos_integrator(ω -> 1, dos)
-  #  @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
-  #end
+  let t=2.0, dos = Keldysh.chain_dos(t=t)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
+  end
 
   # Square lattice DOS
-  #let t=2.0, dos = Keldysh.square_dos(t=t)
-  #  n = dos_integrator(ω -> 1, dos)
-  #  @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
-  #end
+  let t=2.0, dos = Keldysh.square_dos(t=t)
+    n = dos_integrator(ω -> 1, dos)
+    @test isapprox(n, 1.0, atol=1e-10, rtol=1e-10)
+  end
 end
