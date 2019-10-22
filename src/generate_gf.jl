@@ -1,5 +1,3 @@
-using QuadGK
-
 """
 check/get β from contour or explicitly given value
 """
@@ -20,37 +18,19 @@ function gf_1level(grid::TimeGrid; ϵ, β=nothing)
   end
 end
 
-function dos_integrator(f)
-  integral, err = quadgk(f, -Inf, Inf, atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
-  return integral
-end
-
-function dos2gf(dos, t1::BranchPoint, t2::BranchPoint; β, integrator=dos_integrator)
-#    return integrator(ω -> dos(ω) * (θ(t1, t2) - fermi(ω, β)) * exp(-1.0im * (t1.val - t2.val) * ω))
+function dos2gf(dos, t1::BranchPoint, t2::BranchPoint; β, integrator = dos_integrator)
     theta = θ(t1, t2)
     Δt = t1.val - t2.val
-    integrand = ω -> dos(ω) * (ω > 0.0 ? exp(-1.0im * ω * (Δt - 1.0im * (1.0 - theta) * β)) / (exp(-β * ω) + 1) :
-                                         exp(-1.0im * ω * (Δt + 1.0im * theta * β)) / (exp(β * ω) + 1))
-    return -1.0im * (2 * theta - 1) * integrator(integrand)
+    f = ω -> (ω > 0.0 ? exp(-1.0im * ω * (Δt - 1.0im * (1.0 - theta) * β)) / (exp(-β * ω) + 1) :
+                        exp(-1.0im * ω * (Δt + 1.0im * theta * β)) / (exp(β * ω) + 1))
+    return -1.0im * (2 * theta - 1) * integrator(f, dos)
 end
 
-function dos2gf(dos, grid::TimeGrid; β=nothing, integrator=dos_integrator)
+function dos2gf(dos, grid::TimeGrid;
+                β=nothing, integrator=dos_integrator,
+                ωmin = -Inf, ωmax = Inf, singularities = Real[])
   β = get_beta(grid, β)
   TimeGF(grid) do t1, t2
     dos2gf(dos, t1.val, t2.val, β=β, integrator=integrator)
   end
 end
-
-"""
-`flat_dos(;ν=1.0, D=5.0)`
-
-return flat band dos with half-bandwith D and inverse cutoff width ν centered at zero
-"""
-flat_dos(ω; ν=1.0, D=5.0) = (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
-
-"""
-`gaussian_dos(; ϵ=1.0, ν=1.0)`
-
-return normalized gaussian dos centered at ϵ with width ν
-"""
-gaussian_dos(ω; ϵ=1.0, ν=1.0) = (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν))

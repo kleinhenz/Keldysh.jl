@@ -15,6 +15,9 @@ export TimeGrid, TimeGridPoint, branch_bounds, integrate, step
 # TimeGF functions
 export TimeGF, TimeGFTranspose, jump
 
+# DOS functions
+export dos_integrator, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
+
 # generate_gf functions
 export gf_1level, dos2gf
 
@@ -25,6 +28,7 @@ include("branch.jl")
 include("contour.jl")
 include("time_grid.jl")
 include("time_gf.jl")
+include("dos.jl")
 include("generate_gf.jl")
 include("hdf5.jl")
 
