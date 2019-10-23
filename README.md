@@ -16,7 +16,7 @@ using Keldysh, HDF5
 
 contour = twist(Contour(full_contour, tmax=1.0, β=5.0))
 grid = TimeGrid(contour, npts_real=11, npts_imag=51)
-dos = ω -> Keldysh.flat_dos(ω, D=10.0)
+dos = Keldysh.flat_dos(D=10.0)
 gf = dos2gf(dos, grid)
 h5write("output.h5", "/gf", gf)
 
