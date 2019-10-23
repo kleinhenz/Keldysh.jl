@@ -11,7 +11,7 @@ Credit to Andrey Antipov and Igor Krivenko for designing a first version of the 
 
 ## Usage
 The following code generates a non-equilibrium Green's function from a spectral density, saves it to an hdf5 archive and then loads it.
-```
+```Julia
 using Keldysh, HDF5
 
 contour = twist(Contour(full_contour, tmax=1.0, β=5.0))
