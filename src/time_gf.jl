@@ -69,7 +69,13 @@ find_time_gf(a::TimeGF, rest) = a
 find_time_gf(::Any, rest) = find_time_gf(rest)
 
 # indexing with TimeGridPoint
-getindex(gf::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint) = gf[t1.idx, t2.idx]
+function getindex(gf::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
+  val = gf[t1.idx, t2.idx]
+  (!gtr && t1.idx == t2.idx) && (val += jump(gf))
+  return val
+end
+
+
 setindex!(gf::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint) = gf[t1.idx, t2.idx] = v
 
 function jump(gf::TimeGF)
