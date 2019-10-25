@@ -19,7 +19,7 @@ function read(g::HDF5Dataset, ::Type{ALPSComplex})
   return data
 end
 
-function write(parent::Union{HDF5File, HDF5Group}, name::String, data::AbstractArray{Complex{T}}) where T <: HDF5.HDF5Scalar
+function write_alpscomplex(parent::Union{HDF5File, HDF5Group}, name::String, data::AbstractArray{Complex{T}}) where T <: HDF5.HDF5Scalar
   # flip all dimensions since data is stored as row-major
   data = permutedims(data, reverse(1:ndims(data)))
 
@@ -78,7 +78,7 @@ function write(parent::Union{HDF5File, HDF5Group}, name::String, grid::TimeGrid)
   refs = map(t -> t.val.ref, grid)
   branch_enums = map(t -> Int32(Int(t.val.domain) - 1), grid)
 
-  write(g, "values", values)
+  write_alpscomplex(g, "values", values)
   write(g, "refs", refs)
   write(g, "branch_enums", branch_enums)
 end
@@ -91,7 +91,7 @@ end
 
 function write(parent::Union{HDF5File, HDF5Group}, name::String, gf::TimeGF)
   g = g_create(parent, name)
-  write(g, "data", gf.data)
+  write_alpscomplex(g, "data", gf.data)
   write(g, "mesh/1", gf.grid)
   write(g, "mesh/2", gf.grid)
 end
