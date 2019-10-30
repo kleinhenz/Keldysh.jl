@@ -21,6 +21,4 @@ gf = dos2gf(dos, grid)
 h5write("output.h5", "/gf", gf)
 ```
 
-[anderon_nca.jl](examples/anderson_nca.jl) contains a NCA solver for the anderson impurity model implemented using `Keldysh.jl`.
-
-See the `test` subdirectory for more examples.
+[anderon_nca.jl](examples/anderson_nca.jl) implements a NCA solver for the anderson impurity model using `Keldysh.jl`.
