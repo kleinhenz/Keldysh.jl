@@ -8,30 +8,13 @@ Compute the populations (i.e. the diagonal components of the impurity density ma
 function populations(p)
   grid = p[1].grid
   npts_real = length(grid, forward_branch)
-
-  t0plus = branch_bounds(grid, forward_branch)[1]
-  t0minus = branch_bounds(grid, backward_branch)[2]
-
-  ξ = [1.0, -1.0, -1.0, 1.0]
-
   nstates = length(p)
-
-  pop = zeros(ComplexF64, npts_real, nstates)
-
-  for i in 1:npts_real
-    tplus = grid[t0plus.idx + i - 1]
-    tminus = grid[t0minus.idx - i + 1]
-    @assert tplus.val.domain == forward_branch
-    @assert tminus.val.domain == backward_branch
-    @assert tplus.val.val ≈ tminus.val.val
-    Z = sum(1.0im * ξ[s] * p[s][tplus, tminus] for s in 1:length(p))
-
-    for s in 1:nstates
-      pop[i, s] = 1.0im * ξ[s] * p[s][tplus, tminus] / Z
-    end
-  end
-
-  return pop
+  ξ = [1.0, -1.0, -1.0, 1.0]
+  p_lsr_diag = reduce(hcat, (1.0im * ξ[s] * diag(p[s][:lesser]) for s in 1:nstates))
+  Z = sum(p_lsr_diag, dims=2)
+  ρt = p_lsr_diag ./ Z
+  t = map(t -> real(t.val.val),  grid[forward_branch])
+  return t, ρt
 end
 
 struct nca_data
@@ -160,15 +143,13 @@ function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.fla
 
   data = nca(p0, Δ, tol=tol)
 
-  ρt = populations(data.p)
-  t = collect(range(0, tmax, length=npts_real))
-
-  return t, ρt
+  return data
 end
 
 function main()
   dos = Keldysh.flat_dos(ν=10.0, D=10.0)
-  t, ρt = run_anderson_nca(β=1.0, tmax=5.0, npts_real = 101, U = 8.0, dos=dos)
+  data = run_anderson_nca(β=1.0, tmax=5.0, npts_real = 101, U = 8.0, dos=dos)
+  t, ρt = populations(data.p)
   h5write("output.h5", "output/rho", ρt)
   h5write("output.h5", "output/t", t)
 end
