@@ -102,3 +102,23 @@ setindex!(gfa::TimeGFTranspose, v, i::Int, j::Int) = gfa.gf[j,i] = v
 # indexing with TimeGridPoint
 getindex(gfa::TimeGFTranspose, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx]
 setindex!(gfa::TimeGFTranspose, v::ComplexF64, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx] = v
+
+function keldysh_component(gf::TimeGF, component::Symbol)
+  grid = gf.grid
+
+  if component == :greater
+    fwrd = grid[forward_branch]
+    back = grid[backward_branch]
+    return [gf[t1, t2] for t1 in reverse(back), t2 in fwrd]
+  elseif component == :lesser
+    fwrd = grid[forward_branch]
+    back = grid[backward_branch]
+    return [gf[t1, t2] for t1 in fwrd, t2 in reverse(back)]
+  else
+    throw(ArgumentError("component $component not recognized"))
+  end
+end
+
+function getindex(gf::TimeGF, component::Symbol)
+  return keldysh_component(gf, component)
+end
