@@ -37,6 +37,18 @@ size(grid::TimeGrid) = size(grid.points)
 getindex(grid::TimeGrid, i::Int) = grid.points[i]
 setindex!(grid::TimeGrid, v::TimeGridPoint, i::Int) = grid.points[i] = v
 
+"get ith point on branch b of grid"
+function getindex(grid::TimeGrid, b::BranchEnum, i::Int)
+  bounds = branch_bounds(grid, b)
+  return grid[bounds[1].idx + i - 1]
+end
+
+"get all points on branch b of grid"
+function getindex(grid::TimeGrid, b::BranchEnum)
+  bounds = branch_bounds(grid, b)
+  return grid[bounds[1].idx:bounds[2].idx]
+end
+
 function branch_bounds(grid::TimeGrid, b::BranchEnum)
   return grid.branch_bounds[grid.contour.branch_indices[Int(b)]]
 end
