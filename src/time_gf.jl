@@ -45,8 +45,8 @@ end
 ### AbstractArray Interface ###
 IndexStyle(::Type{<:TimeGF}) = IndexLinear()
 size(gf::TimeGF) = size(gf.data)
-getindex(gf::TimeGF, i::Int) = gf.data[i]
-setindex!(gf::TimeGF, v, i::Int) = gf.data[i] = v
+Base.@propagate_inbounds getindex(gf::TimeGF, i::Int) = gf.data[i]
+Base.@propagate_inbounds setindex!(gf::TimeGF, v, i::Int) = gf.data[i] = v
 function similar(gf::TimeGF, ::Type{S}) where S
   data = similar(gf.data, S)
   TimeGF(data, gf.grid) # TODO copy grid?
@@ -69,14 +69,14 @@ find_time_gf(a::TimeGF, rest) = a
 find_time_gf(::Any, rest) = find_time_gf(rest)
 
 # indexing with TimeGridPoint
-function getindex(gf::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
+Base.@propagate_inbounds function getindex(gf::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
   val = gf[t1.idx, t2.idx]
   (!gtr && t1.idx == t2.idx) && (val += jump(gf))
   return val
 end
 
 
-setindex!(gf::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint) = gf[t1.idx, t2.idx] = v
+Base.@propagate_inbounds setindex!(gf::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint) = gf[t1.idx, t2.idx] = v
 
 function jump(gf::TimeGF)
   t0_plus = branch_bounds(gf.grid, forward_branch)[1]
@@ -96,12 +96,12 @@ adjoint(gf::TimeGF) = TimeGFTranspose(gf)
 ### AbstractArray Interface ###
 IndexStyle(::Type{<:TimeGFTranspose}) = IndexCartesian()
 size(gfa::TimeGFTranspose) = size(gfa.gf)
-getindex(gfa::TimeGFTranspose, i::Int, j::Int) = i == j ? gfa.gf[i,i] + jump(gfa.gf) : gfa.gf[j,i]
-setindex!(gfa::TimeGFTranspose, v, i::Int, j::Int) = gfa.gf[j,i] = v
+Base.@propagate_inbounds getindex(gfa::TimeGFTranspose, i::Int, j::Int) = i == j ? gfa.gf[i,i] + jump(gfa.gf) : gfa.gf[j,i]
+Base.@propagate_inbounds setindex!(gfa::TimeGFTranspose, v, i::Int, j::Int) = gfa.gf[j,i] = v
 
 # indexing with TimeGridPoint
-getindex(gfa::TimeGFTranspose, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx]
-setindex!(gfa::TimeGFTranspose, v::ComplexF64, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx] = v
+Base.@propagate_inbounds getindex(gfa::TimeGFTranspose, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx]
+Base.@propagate_inbounds setindex!(gfa::TimeGFTranspose, v::ComplexF64, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx] = v
 
 function keldysh_component(gf::TimeGF, component::Symbol)
   grid = gf.grid
