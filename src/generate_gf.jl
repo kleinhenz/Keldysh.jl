@@ -28,7 +28,7 @@ end
 
 function dos2gf(dos, grid::TimeGrid; β=nothing, integrator=dos_integrator)
   β = get_beta(grid, β)
-  TimeGF(grid, time_invariant=false) do t1, t2
+  TimeGF(grid, time_invariant=true) do t1, t2
     dos2gf(dos, t1.val, t2.val, β=β, integrator=integrator)
   end
 end
