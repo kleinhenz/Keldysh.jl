@@ -2,6 +2,8 @@ using LinearAlgebra
 
 using Keldysh, HDF5
 
+@enum DysonDirectionEnum forward backward symmetric
+
 """
 Compute the populations (i.e. the diagonal components of the impurity density matrix) from a propagator
 """
@@ -17,6 +19,13 @@ function populations(p)
   return t, ρt, Zt
 end
 
+struct nca_params
+  dyson_tol::Real
+  dyson_dir::DysonDirectionEnum
+  dyson_max_iter::Int
+end
+nca_params(; dyson_tol = 1e-6, dyson_dir = forward, dyson_max_iter = 100) = nca_params(dyson_tol, dyson_dir, dyson_max_iter)
+
 struct nca_data
   p0 # bare propagator
   Δ # hybridization function
@@ -24,6 +33,7 @@ struct nca_data
   p # dressed propagator
   Σ # self-energy
   Σxp # self-energy convolved with propagator
+  pxΣ # self-energy convolved with propagator
   G # green's function
 
   grid # time grid
@@ -40,9 +50,10 @@ struct nca_data
     p = [TimeGF(grid) for _ in 1:statesize]
     Σ = [TimeGF(grid) for _ in 1:statesize]
     Σxp = [TimeGF(grid) for _ in 1:statesize]
+    pxΣ = [TimeGF(grid) for _ in 1:statesize]
     G = [TimeGF(grid) for _ in 1:indexsize]
 
-    new(p0, Δ, p, Σ, Σxp, G, grid, statesize, indexsize)
+    new(p0, Δ, p, Σ, Σxp, pxΣ, G, grid, statesize, indexsize)
   end
 end
 
@@ -56,10 +67,9 @@ function Σnca(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, st_sigma::U
   return val
 end
 
-function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint; tol=1e-6)
+function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca_params)
   @assert t1.idx >= t2.idx
-
-  max_iter = 100
+  # NOTE symmetric propagation maintains unitarity but is numerically unstable
 
   x0 = zeros(eltype(data.p[1]), data.statesize)
   x1 = zeros(eltype(data.p[1]), data.statesize)
@@ -74,16 +84,29 @@ function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint; tol=1e-6)
   done = false
   iter = 1
   diff = 0.0
-  while iter <= max_iter && !done
+  while iter <= params.dyson_max_iter && !done
 
     for s in 1:data.statesize
+      x1[s] = 0.0
+
       data.Σ[s][t1, t2] = Σnca(data, t1, t2, UInt64(s))
-      data.Σxp[s][t1, t2] = convo_integr(data.Σ[s], data.p[s])
-      x1[s] = data.p0[s][t1, t2] + convo_integr(data.p0[s], data.Σxp[s])
+      if params.dyson_dir == forward || params.dyson_dir == symmetric
+        data.Σxp[s][t1, t2] = convo_integr(data.Σ[s], data.p[s])
+        x1[s] += convo_integr(data.p0[s], data.Σxp[s])
+      end
+
+      if params.dyson_dir == backward || params.dyson_dir == symmetric
+        data.pxΣ[s][t1, t2] = convo_integr(data.p[s], data.Σ[s])
+        x1[s] += convo_integr(data.pxΣ[s], data.p0[s])
+      end
+
+      params.dyson_dir == symmetric && (x1[s] *= 0.5)
+
+      x1[s] += data.p0[s][t1, t2]
     end
 
     diff = norm(x0 - x1)
-    done = diff < tol * norm(x0)
+    done = diff < params.dyson_tol * norm(x0)
     for s in 1:data.statesize
       data.p[s][t1,t2] = x1[s]
     end
@@ -92,7 +115,7 @@ function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint; tol=1e-6)
   end
 end
 
-function nca(p0, Δ; tol=1e-6)
+function nca(p0, Δ, params::nca_params)
   data = nca_data(p0, Δ)
   N = length(data.grid)
   for d in 0:(N-1) # solve diagonal by diagonal
@@ -100,7 +123,7 @@ function nca(p0, Δ; tol=1e-6)
       i = j + d
       t1 = data.grid[i]
       t2 = data.grid[j]
-      dyson(data, t1, t2, tol=tol)
+      dyson(data, t1, t2, params)
     end
   end
 
@@ -119,9 +142,9 @@ Solve the Anderson impurity model on the two-branch Keldysh contour
 - `dos=Keldysh.flat_dos()`: the bath density of states
 - `U::Real=4.0`: the coulomb interaction strength
 - `ρ0::Array{Float,1}=[1.0, 0.0, 0.0, 0.0]`: the initial (diagonal) impurity density matrix
-- `tol::Real=1e-6`: dyson equation tolerance
+- `params::nca_params`: parameters controlling solution of nca equations
 """
-function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.flat_dos(), U = 4.0, ρ0 = [1.0, 0.0, 0.0, 0.0], tol=1e-6)
+function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.flat_dos(), U = 4.0, ρ0 = [1.0, 0.0, 0.0, 0.0], params::nca_params = nca_params())
   @assert length(ρ0) == 4
 
   c = twist(Contour(keldysh_contour, tmax=tmax))
@@ -141,7 +164,7 @@ function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.fla
   Δup = dos2gf(dos, grid, β=β)
   Δ = [deepcopy(Δup) for _ in 1:2] # spin symmetric
 
-  data = nca(p0, Δ, tol=tol)
+  data = nca(p0, Δ, params)
 
   return data
 end
