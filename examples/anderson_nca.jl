@@ -11,10 +11,10 @@ function populations(p)
   nstates = length(p)
   ξ = [1.0, -1.0, -1.0, 1.0]
   p_lsr_diag = reduce(hcat, (1.0im * ξ[s] * diag(p[s][:lesser]) for s in 1:nstates))
-  Z = sum(p_lsr_diag, dims=2)
-  ρt = p_lsr_diag ./ Z
+  Zt = sum(p_lsr_diag, dims=2)
+  ρt = p_lsr_diag ./ Zt
   t = map(t -> real(t.val.val),  grid[forward_branch])
-  return t, ρt
+  return t, ρt, Zt
 end
 
 struct nca_data
@@ -149,8 +149,9 @@ end
 function main()
   dos = Keldysh.flat_dos(ν=10.0, D=10.0)
   data = run_anderson_nca(β=1.0, tmax=5.0, npts_real = 101, U = 8.0, dos=dos)
-  t, ρt = populations(data.p)
+  t, ρt, Zt = populations(data.p)
   h5write("output.h5", "output/rho", ρt)
+  h5write("output.h5", "output/Z", ρt)
   h5write("output.h5", "output/t", t)
 end
 
