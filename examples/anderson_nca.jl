@@ -20,25 +20,25 @@ function populations(p)
 end
 
 struct nca_params
-  dyson_tol::Real
+  dyson_tol::Float64
   dyson_dir::DysonDirectionEnum
   dyson_max_iter::Int
 end
 nca_params(; dyson_tol = 1e-6, dyson_dir = forward, dyson_max_iter = 100) = nca_params(dyson_tol, dyson_dir, dyson_max_iter)
 
 struct nca_data
-  p0 # bare propagator
-  Δ # hybridization function
+  p0::Array{TimeGF,1} # bare propagator
+  Δ::Array{TimeGF, 1} # hybridization function
 
-  p # dressed propagator
-  Σ # self-energy
-  Σxp # self-energy convolved with propagator
-  pxΣ # self-energy convolved with propagator
-  G # green's function
+  p::Array{TimeGF,1} # dressed propagator
+  Σ::Array{TimeGF,1} # self-energy
+  Σxp::Array{TimeGF,1} # self-energy convolved with propagator
+  pxΣ::Array{TimeGF,1} # self-energy convolved with propagator
+  G::Array{TimeGF,1} # green's function
 
-  grid # time grid
-  statesize
-  indexsize
+  grid::TimeGrid # time grid
+  statesize::Int
+  indexsize::Int
 
   function nca_data(p0, Δ)
     statesize = length(p0)
@@ -79,7 +79,7 @@ function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca
     data.p[s][t1,t2] = data.p0[s][t1,t2] # initial guess
   end
 
-  convo_integr = (A, B) -> integrate(t -> A[t1, t] * B[t, t2], data.grid, t1, t2)
+  convo_integr = (A, B) -> integrate(t -> @inbounds(A[t1, t] * B[t, t2]), data.grid, t1, t2)
 
   done = false
   iter = 1
