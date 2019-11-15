@@ -78,7 +78,8 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
     @assert first.val.domain == last.val.domain
     if (last.idx != first.idx) #trapezoid rule
       branch_integral = 0.5 * (f(grid[first.idx]) + f(grid[last.idx]))
-      for t in grid[(first.idx+1):(last.idx-1)]
+      for i in (first.idx+1):(last.idx-1)
+        t = @inbounds grid[i]
         branch_integral += f(t)
       end
       integral += (Δt * branch_integral)
