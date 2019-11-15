@@ -79,7 +79,7 @@ function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca
     data.p[s][t1,t2] = data.p0[s][t1,t2] # initial guess
   end
 
-  convo_integr = (A, B) -> integrate(t -> @inbounds(A[t1, t] * B[t, t2]), data.grid, t1, t2)
+  ↻ = (A, B) -> integrate(t -> @inbounds(A[t1, t] * B[t, t2]), data.grid, t1, t2)
 
   done = false
   iter = 1
@@ -90,14 +90,17 @@ function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca
       x1[s] = 0.0
 
       data.Σ[s][t1, t2] = Σnca(data, t1, t2, UInt64(s))
+
+      # p = p₀ + p₀ ↻ Σ ↻ p
       if params.dyson_dir == forward || params.dyson_dir == symmetric
-        data.Σxp[s][t1, t2] = convo_integr(data.Σ[s], data.p[s])
-        x1[s] += convo_integr(data.p0[s], data.Σxp[s])
+        data.Σxp[s][t1, t2] = data.Σ[s] ↻ data.p[s]
+        x1[s] += data.p0[s] ↻ data.Σxp[s]
       end
 
+      # p = p₀ + p ↻ Σ ↻ p₀
       if params.dyson_dir == backward || params.dyson_dir == symmetric
-        data.pxΣ[s][t1, t2] = convo_integr(data.p[s], data.Σ[s])
-        x1[s] += convo_integr(data.pxΣ[s], data.p0[s])
+        data.pxΣ[s][t1, t2] = data.p[s] ↻ data.Σ[s]
+        x1[s] += data.pxΣ[s] ↻ data.p0[s]
       end
 
       params.dyson_dir == symmetric && (x1[s] *= 0.5)
