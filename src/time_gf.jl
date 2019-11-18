@@ -103,22 +103,20 @@ Base.@propagate_inbounds setindex!(gfa::TimeGFTranspose, v, i::Int, j::Int) = gf
 Base.@propagate_inbounds getindex(gfa::TimeGFTranspose, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx]
 Base.@propagate_inbounds setindex!(gfa::TimeGFTranspose, v::ComplexF64, t1::TimeGridPoint, t2::TimeGridPoint) = gfa[t1.idx, t2.idx] = v
 
-function keldysh_component(gf::TimeGF, component::Symbol)
+function getindex(gf::TimeGF, b1::BranchEnum, b2::BranchEnum)
   grid = gf.grid
-
-  if component == :greater
-    fwrd = grid[forward_branch]
-    back = grid[backward_branch]
-    return [gf[t1, t2] for t1 in reverse(back), t2 in fwrd]
-  elseif component == :lesser
-    fwrd = grid[forward_branch]
-    back = grid[backward_branch]
-    return [gf[t1, t2] for t1 in fwrd, t2 in reverse(back)]
-  else
-    throw(ArgumentError("component $component not recognized"))
-  end
+  x = b1 == backward_branch ? reverse(grid[b1]) : grid[b1]
+  y = b2 == backward_branch ? reverse(grid[b2]) : grid[b2]
+  return [gf[t1, t2] for t1 in x, t2 in y]
 end
 
 function getindex(gf::TimeGF, component::Symbol)
-  return keldysh_component(gf, component)
+  grid = gf.grid
+  if component == :greater
+    return gf[backward_branch, forward_branch]
+  elseif component == :lesser
+    return gf[forward_branch, backward_branch]
+  else
+    throw(ArgumentError("component $component not recognized"))
+  end
 end
