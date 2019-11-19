@@ -2,14 +2,15 @@ using LinearAlgebra
 
 using Keldysh, HDF5
 
-@enum DysonDirectionEnum forward backward symmetric
+# Propagation direction for dyson equation
+# NOTE symmetric propagation maintains unitarity but is numerically unstable
+@enum DysonDirectionEnum forward_prop backward_prop symmetric_prop
 
 """
 Compute the populations (i.e. the diagonal components of the impurity density matrix) from a propagator
 """
 function populations(p)
   grid = p[1].grid
-  npts_real = length(grid, forward_branch)
   nstates = length(p)
   ξ = [1.0, -1.0, -1.0, 1.0]
   p_lsr_diag = reduce(hcat, (1.0im * ξ[s] * diag(p[s][:lesser]) for s in 1:nstates))
@@ -24,7 +25,7 @@ struct nca_params
   dyson_dir::DysonDirectionEnum
   dyson_max_iter::Int
 end
-nca_params(; dyson_tol = 1e-6, dyson_dir = forward, dyson_max_iter = 100) = nca_params(dyson_tol, dyson_dir, dyson_max_iter)
+nca_params(; dyson_tol = 1e-6, dyson_dir = forward_prop, dyson_max_iter = 100) = nca_params(dyson_tol, dyson_dir, dyson_max_iter)
 
 struct nca_data
   p0::Array{TimeGF,1} # bare propagator
@@ -33,7 +34,7 @@ struct nca_data
   p::Array{TimeGF,1} # dressed propagator
   Σ::Array{TimeGF,1} # self-energy
   Σxp::Array{TimeGF,1} # self-energy convolved with propagator
-  pxΣ::Array{TimeGF,1} # self-energy convolved with propagator
+  pxΣ::Array{TimeGF,1} # propagator convolved with self-energy
   G::Array{TimeGF,1} # green's function
 
   grid::TimeGrid # time grid
@@ -69,13 +70,12 @@ end
 
 function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca_params)
   @assert t1.idx >= t2.idx
-  # NOTE symmetric propagation maintains unitarity but is numerically unstable
 
-  x0 = zeros(eltype(data.p[1]), data.statesize)
-  x1 = zeros(eltype(data.p[1]), data.statesize)
+  p_t1t2_cur = zeros(eltype(data.p[1]), data.statesize)
+  p_t1t2_next = zeros(eltype(data.p[1]), data.statesize)
 
   for s in 1:data.statesize
-    x0[s] = data.p0[s][t1,t2]
+    p_t1t2_cur[s] = data.p0[s][t1,t2]
     data.p[s][t1,t2] = data.p0[s][t1,t2] # initial guess
   end
 
@@ -87,33 +87,33 @@ function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca
   while iter <= params.dyson_max_iter && !done
 
     for s in 1:data.statesize
-      x1[s] = 0.0
+      p_t1t2_next[s] = 0.0
 
       data.Σ[s][t1, t2] = Σnca(data, t1, t2, UInt64(s))
 
       # p = p₀ + p₀ ↻ Σ ↻ p
-      if params.dyson_dir == forward || params.dyson_dir == symmetric
+      if params.dyson_dir == forward_prop || params.dyson_dir == symmetric_prop
         data.Σxp[s][t1, t2] = data.Σ[s] ↻ data.p[s]
-        x1[s] += data.p0[s] ↻ data.Σxp[s]
+        p_t1t2_next[s] += data.p0[s] ↻ data.Σxp[s]
       end
 
       # p = p₀ + p ↻ Σ ↻ p₀
-      if params.dyson_dir == backward || params.dyson_dir == symmetric
+      if params.dyson_dir == backward_prop || params.dyson_dir == symmetric_prop
         data.pxΣ[s][t1, t2] = data.p[s] ↻ data.Σ[s]
-        x1[s] += data.pxΣ[s] ↻ data.p0[s]
+        p_t1t2_next[s] += data.pxΣ[s] ↻ data.p0[s]
       end
 
-      params.dyson_dir == symmetric && (x1[s] *= 0.5)
+      params.dyson_dir == symmetric_prop && (p_t1t2_next[s] *= 0.5)
 
-      x1[s] += data.p0[s][t1, t2]
+      p_t1t2_next[s] += data.p0[s][t1, t2]
     end
 
-    diff = norm(x0 - x1)
-    done = diff < params.dyson_tol * norm(x0)
+    diff = norm(p_t1t2_cur - p_t1t2_next)
+    done = diff < params.dyson_tol * norm(p_t1t2_cur)
     for s in 1:data.statesize
-      data.p[s][t1,t2] = x1[s]
+      data.p[s][t1,t2] = p_t1t2_next[s]
     end
-    x0 .= x1
+    p_t1t2_cur .= p_t1t2_next
     iter += 1
   end
 end
