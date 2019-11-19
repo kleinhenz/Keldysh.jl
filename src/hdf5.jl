@@ -94,4 +94,5 @@ function write(parent::Union{HDF5File, HDF5Group}, name::String, gf::TimeGF)
   write_alpscomplex(g, "data", gf.data)
   write(g, "mesh/1", gf.grid)
   write(g, "mesh/2", gf.grid)
+  write(g, "mesh/N", 2)
 end
