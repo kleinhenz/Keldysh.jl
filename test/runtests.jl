@@ -46,6 +46,13 @@ end
       @test get_branch(c, b).domain == b
     end
   end
+
+  let tmax = 2.0, β = 5.0, npts_real = 21
+    c = Contour(keldysh_contour, tmax=tmax)
+    @test forward_branch ∈ c
+    @test backward_branch ∈ c
+    @test imaginary_branch ∉ c
+  end
 end
 
 @testset "time_grid" begin

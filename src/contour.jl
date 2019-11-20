@@ -88,3 +88,17 @@ function heaviside(t1::BranchPoint, t2::BranchPoint)
 end
 
 const θ = heaviside
+
+function in(b::BranchEnum, c::ContourEnum)
+  if c == keldysh_contour
+    return b == imaginary_branch ? false : true
+  elseif c == imaginary_branch
+    return b == imaginary ? true : false
+  else
+    return true
+  end
+end
+
+function in(b::BranchEnum, c::Contour)
+  return in(b, c.domain)
+end
