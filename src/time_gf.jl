@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 struct TimeGF <: AbstractArray{ComplexF64, 2}
   data::Array{ComplexF64, 2}
   grid::TimeGrid
@@ -105,6 +107,7 @@ Base.@propagate_inbounds setindex!(gfa::TimeGFTranspose, v::ComplexF64, t1::Time
 
 function getindex(gf::TimeGF, b1::BranchEnum, b2::BranchEnum)
   grid = gf.grid
+  @assert b1 ∈ grid.contour && b2 ∈ grid.contour
   x = b1 == backward_branch ? reverse(grid[b1]) : grid[b1]
   y = b2 == backward_branch ? reverse(grid[b2]) : grid[b2]
   return [gf[t1, t2] for t1 in x, t2 in y]
@@ -116,7 +119,31 @@ function getindex(gf::TimeGF, component::Symbol)
     return gf[backward_branch, forward_branch]
   elseif component == :lesser
     return gf[forward_branch, backward_branch]
+  elseif component == :matsubara
+    gf[imaginary_branch, imaginary_branch][:,1]
+  elseif component == :retarded
+    gfʳ = gf[:greater] - gf[:lesser]
+    θ = LowerTriangular(ones(size(gfʳ)...))
+    return θ .* gfʳ
   else
     throw(ArgumentError("component $component not recognized"))
   end
+end
+
+"""
+n(t) = <c†(t)c(t)> = -i G<(t,t)
+"""
+function density(gf::TimeGF)
+  return -1.0im * diag(gf[:lesser])
+end
+
+"""
+A(ω) Im -1/π ∫dt Gʳ(t, 0) exp(iωt)
+"""
+function equilibrium_spectrum(gf::TimeGF, ω)
+  grid = gf.grid
+  t = map(t -> real(t.val.val), grid[forward_branch])
+  trapz = ft -> sum((ft[i] + ft[i+1]) * (t[i+1] - t[i]) / 2 for i in 1:(length(t) - 1))
+  gfʳ = gf[:retarded][:,1]
+  Aω = [imag((-1.0 / π) * trapz(gfʳ .* exp.(1.0im .* ωi .* t))) for ωi in ω]
 end
