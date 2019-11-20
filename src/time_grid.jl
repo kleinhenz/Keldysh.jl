@@ -90,3 +90,6 @@ function integrate(f, grid::TimeGrid, t1::TimeGridPoint, t2::TimeGridPoint)
 end
 
 integrate(f, grid::TimeGrid) = integrate(f, grid, grid[end], grid[1])
+
+realtimes(grid::TimeGrid) = map(t -> real(t.val.val), grid[forward_branch])
+imagtimes(grid::TimeGrid) = map(t -> real(1.0im * t.val.val), grid[imaginary_branch]) # τ = it
