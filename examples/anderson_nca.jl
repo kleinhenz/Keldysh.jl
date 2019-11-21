@@ -16,7 +16,7 @@ function populations(p)
   p_lsr_diag = reduce(hcat, (1.0im * ξ[s] * diag(p[s][:lesser]) for s in 1:nstates))
   Zt = sum(p_lsr_diag, dims=2)
   ρt = p_lsr_diag ./ Zt
-  t = map(t -> real(t.val.val),  grid[forward_branch])
+  t = realtimes(grid)
   return t, ρt, Zt
 end
 
