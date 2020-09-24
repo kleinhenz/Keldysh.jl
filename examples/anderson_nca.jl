@@ -131,7 +131,9 @@ function Σoca(data::nca_data, t1::TimeGridPoint, t4::TimeGridPoint, st_sigma::F
     h0 = t3 -> 1.0im * (st_sigma[sp0] ? Δ[sp0][t1, t3] : -Δ[sp0][t3, t1, false])
 
     # integrate over t3
-    f = t2 -> h1(t2) * integrate(t3 -> h0(t3) * p[st1][t2, t3] * p[st2][t3, t4], grid, t2, t4)
+    # FIXME workaround for failure to elide fancier indexing (seems to be problem in julia 1.5)
+    f = t2 -> h1(t2) * integrate(t3 -> h0(t3) * p[st1].data[t2.idx, t3.idx] * p[st2].data[t3.idx, t4.idx], grid, t2, t4)
+#    f = t2 -> h1(t2) * integrate(t3 -> h0(t3) * p[st1][t2, t3] * p[st2][t3, t4], grid, t2, t4)
 
     # integrate over t2
     return integrate(t2 -> p[st0][t1, t2] * f(t2), grid, t1, t4)
