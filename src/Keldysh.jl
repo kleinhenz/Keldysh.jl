@@ -31,5 +31,6 @@ include("time_gf.jl")
 include("dos.jl")
 include("generate_gf.jl")
 include("hdf5.jl")
+include("nessi.jl")
 
 end # module
