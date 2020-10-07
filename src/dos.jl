@@ -91,7 +91,7 @@ end
 
 return flat band DOS with half-bandwith D and inverse cutoff width ν centered at zero
 """
-flat_dos(; ν=1.0, D=5.0) = ω -> (1.0/π) / ((1 + exp(ν * (ω - D))) * (1 + exp(-ν * (ω + D))))
+flat_dos(; ν=1.0, D=5.0, μ=0.0) = ω -> (1.0/π) / ((1 + exp(ν * (ω - μ - D))) * (1 + exp(-ν * (ω - μ + D))))
 
 """
 `gaussian_dos(; ϵ=1.0, ν=1.0)`
