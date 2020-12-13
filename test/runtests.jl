@@ -74,9 +74,6 @@ end
       @test grid.branch_bounds[i][2].val == grid.contour.branches[i](1.0)
     end
 
-    @test β == Keldysh.get_beta(grid, nothing)
-    @test_throws AssertionError Keldysh.get_beta(grid, β)
-
     @test integrate(t -> 1, grid) ≈ -1.0im * β
   end
 
@@ -95,8 +92,6 @@ end
       @test grid.branch_bounds[i][2].val == grid.contour.branches[i](1.0)
     end
 
-    @test_throws AssertionError Keldysh.get_beta(grid, nothing)
-    @test β == Keldysh.get_beta(grid, β)
   end
 
   let tmax = 2.0, c = Contour(keldysh_contour, tmax=tmax)
@@ -133,14 +128,11 @@ end
     grid = TimeGrid(c, npts_real=51, npts_imag=51)
     dos = Keldysh.gaussian_dos(ν=ν, ϵ=ϵ)
 
-    hyb1 = dos2gf(dos, grid)
-    hyb2 = gf_1level(grid, ϵ=ϵ)
+    hyb1 = dos2gf(dos, β, grid)
+    hyb2 = gf_1level(grid; ϵ, β)
 
     # gf_1level is gf for a delta function spectrum
     @test isapprox(hyb1, hyb2, atol=ν, norm=x -> norm(x, Inf))
-
-    # can't also supply β if it is part of the contour
-    @test_throws AssertionError dos2gf(dos, grid, β = β)
   end
 end
 

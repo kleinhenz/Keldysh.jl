@@ -10,38 +10,76 @@ function TimeGF(grid::TimeGrid)
   TimeGF(zeros(ComplexF64, N, N), grid)
 end
 
-function TimeGF(f::Function, grid::TimeGrid; lower = false, time_invariant = false)
-  if time_invariant
-    δ = minimum(abs.(grid.step)) / 10
+function TimeGF(f::Function, grid::TimeGrid; lower = false)
+  N = length(grid)
+  gf = TimeGF(grid)
 
-    make_key = (t1, t2) -> begin
-      theta = θ(t1.val, t2.val)
-      Δt = t1.val.val - t2.val.val
-      return (Complex{Int}(round(Δt / δ)), theta)
+  for t1 in grid
+    for t2 in grid
+      lower && t1.idx < t2.idx && continue
+      gf[t1, t2] = f(t1, t2)
     end
-
-    T = typeof(f(grid[1], grid[1])) # extra evaluation to get type for cache
-
-    cache = Dict{Tuple{Complex{Int}, Bool}, T}()
-
-    g = (t1, t2) -> begin
-      key = make_key(t1, t2)
-      key ∈ keys(cache) ? cache[key] : cache[key] = f(t1, t2)
-    end
-
-    return TimeGF(g, grid, lower=lower, time_invariant=false)
-  else
-    N = length(grid)
-    gf = TimeGF(grid)
-
-    for t1 in grid
-      for t2 in grid
-        lower && t1.idx < t2.idx && continue
-        gf[t1, t2] = f(t1, t2)
-      end
-    end
-    return gf
   end
+  return gf
+end
+
+function TimeGF(les::AbstractMatrix, ret::AbstractMatrix, tv::AbstractMatrix, mat::AbstractVector, grid::TimeGrid)
+  @assert grid.contour.domain == full_contour
+
+  t = realtimes(grid)
+  tau = imagtimes(grid)
+
+  nt = length(t)
+  ntau = length(tau)
+
+  @assert size(les) == (nt,nt)
+  @assert size(ret) == (nt,nt)
+  @assert size(tv) == (nt,ntau)
+  @assert size(mat) == (ntau,)
+
+  G = TimeGF(grid) do t1, t2
+    greater = heaviside(t1.val, t2.val)
+    if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
+        (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
+      i = findfirst(isapprox(real(t1.val.val)), t)
+      j = findfirst(isapprox(real(t2.val.val)), t)
+      greater ? ret[i,j] + les[i,j] : les[i,j]
+    elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
+      i = findfirst(isapprox(imag(t1.val.val)), -tau)
+      j = findfirst(isapprox(real(t2.val.val)), t)
+      conj(tv[j, ntau+1-i]) # akoi 19c
+    elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
+      i = findfirst(isapprox(real(t1.val.val)), t)
+      j = findfirst(isapprox(imag(t2.val.val)), -tau)
+      tv[i,j]
+    else
+      i = findfirst(isapprox(imag(t1.val.val)), -tau)
+      j = findfirst(isapprox(imag(t2.val.val)), -tau)
+      greater ? 1.0im * mat[i - j + 1] : -1.0im * mat[i - j + ntau]
+    end
+  end
+
+  return G
+end
+
+function TimeGF(les::AbstractMatrix, ret::AbstractMatrix, grid::TimeGrid)
+  @assert grid.contour.domain == keldysh_contour
+
+  t = realtimes(grid)
+
+  nt = length(t)
+
+  @assert size(les) == (nt,nt)
+  @assert size(ret) == (nt,nt)
+
+  G = TimeGF(grid) do t1, t2
+    greater = heaviside(t1.val, t2.val)
+    i = findfirst(isapprox(real(t1.val.val)), t)
+    j = findfirst(isapprox(real(t2.val.val)), t)
+    greater ? ret[i,j] + les[i,j] : les[i,j]
+  end
+
+  return G
 end
 
 ### AbstractArray Interface ###
@@ -120,11 +158,13 @@ function getindex(gf::TimeGF, component::Symbol)
   elseif component == :lesser
     return gf[forward_branch, backward_branch]
   elseif component == :matsubara
-    gf[imaginary_branch, imaginary_branch][:,1]
+    real(-im .* gf[imaginary_branch, imaginary_branch][:,1])
   elseif component == :retarded
     gfʳ = gf[:greater] - gf[:lesser]
     θ = LowerTriangular(ones(size(gfʳ)...))
     return θ .* gfʳ
+  elseif component == :leftmixing
+    gf[backward_branch, imaginary_branch]
   else
     throw(ArgumentError("component $component not recognized"))
   end

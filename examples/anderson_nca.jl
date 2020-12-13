@@ -238,7 +238,7 @@ function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.fla
     end
   end
 
-  Δup = dos2gf(dos, grid, β=β)
+  Δup = dos2gf(dos, β, grid)
   Δ = [deepcopy(Δup) for _ in 1:2] # spin symmetric
 
   data = nca(p0, Δ, params)
