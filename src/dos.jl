@@ -35,9 +35,15 @@ struct SingularDOS
   singularities::Vector{DOSSingularity}
 end
 
+SingularDOS(ωmin, ωmax, dos) = SingularDOS(ωmin, ωmax, dos, [])
+
 """Evaluate singular DOS at a given frequency"""
 function (dos::SingularDOS)(ω)
-  dos.regular(ω) + sum(s.asymptotics(ω) for s in dos.singularities)
+  x = dos.regular(ω)
+  for s in dos.singularities
+    x += s.asymptotics(ω)
+  end
+  return x
 end
 
 """
