@@ -151,18 +151,22 @@ function getindex(gf::TimeGF, b1::BranchEnum, b2::BranchEnum)
   return [gf[t1, t2] for t1 in x, t2 in y]
 end
 
-function getindex(gf::TimeGF, component::Symbol)
-  grid = gf.grid
+function getindex(G::TimeGF, component::Symbol)
+  grid = G.grid
   if component == :greater
-    return gf[backward_branch, forward_branch]
+    return G[backward_branch, forward_branch]
   elseif component == :lesser
-    return gf[forward_branch, backward_branch]
+    return G[forward_branch, backward_branch]
   elseif component == :matsubara
-    real(-im .* gf[imaginary_branch, imaginary_branch][:,1])
+    real(-im .* G[imaginary_branch, imaginary_branch][:,1])
   elseif component == :retarded
-    gfʳ = gf[:greater] - gf[:lesser]
-    θ = LowerTriangular(ones(size(gfʳ)...))
-    return θ .* gfʳ
+    ret = G[:greater] - G[:lesser]
+    θ = LowerTriangular(ones(size(ret)...))
+    return θ .* ret
+  elseif component == :advanced
+    adv = G[:lesser] - G[:greater]
+    θ = UpperTriangular(ones(size(adv)...))
+    return θ .* adv
   elseif component == :leftmixing
     gf[backward_branch, imaginary_branch]
   else
