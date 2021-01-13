@@ -2,7 +2,7 @@ using HDF5
 
 struct ALPSComplex end
 
-function read(g::HDF5Dataset, ::Type{ALPSComplex})
+function read(g::HDF5.Dataset, ::Type{ALPSComplex})
   data = read(g)
 
   # flip all dimensions since data is stored as row-major
@@ -10,7 +10,7 @@ function read(g::HDF5Dataset, ::Type{ALPSComplex})
   sz = size(data)
 
   # interpret last dimension as real/complex
-  if exists(attrs(g), "__complex__")
+  if haskey(attributes(g), "__complex__")
     @assert sz[end] == 2
     R = CartesianIndices(sz[1:end-1])
     data = data[R,1] + 1.0im * data[R, 2]
@@ -19,7 +19,7 @@ function read(g::HDF5Dataset, ::Type{ALPSComplex})
   return data
 end
 
-function write_alpscomplex(parent::Union{HDF5File, HDF5Group}, name::String, data::AbstractArray{Complex{T}}) where T <: HDF5.HDF5Scalar
+function write_alpscomplex(parent::Union{HDF5.File, HDF5.Group}, name::String, data::AbstractArray{Complex{T}}) where T <: HDF5.ScalarType
   # flip all dimensions since data is stored as row-major
   data = permutedims(data, reverse(1:ndims(data)))
 
@@ -27,10 +27,10 @@ function write_alpscomplex(parent::Union{HDF5File, HDF5Group}, name::String, dat
   data = reshape(reinterpret(T, data), 2, size(data)...)
 
   parent[name] = data
-  attrs(parent[name])["__complex__"] = Int8(1)
+  attributes(parent[name])["__complex__"] = Int8(1)
 end
 
-function read(g::HDF5Group, ::Type{Contour})
+function read(g::HDF5.Group, ::Type{Contour})
   nb = read(g, "size")
   branches = Branch[]
   for i in 0:nb-1
@@ -41,8 +41,8 @@ function read(g::HDF5Group, ::Type{Contour})
   return Contour(branches)
 end
 
-function write(parent::Union{HDF5File, HDF5Group}, name::String, c::Contour)
-  g = g_create(parent, name)
+function write(parent::Union{HDF5.File, HDF5.Group}, name::String, c::Contour)
+  g = HDF5.create_group(parent, name)
   g["size"] = UInt(nbranches(c))
   for (i, branch) in enumerate(c.branches)
     g["branch$(i-1)/type"] = Int32(Int(branch.domain) - 1)
@@ -50,7 +50,7 @@ function write(parent::Union{HDF5File, HDF5Group}, name::String, c::Contour)
   end
 end
 
-function read(g::HDF5Group, ::Type{TimeGrid})
+function read(g::HDF5.Group, ::Type{TimeGrid})
   c = read(g["contour"], Contour)
   branch_enums = read(g["branch_enums"])
   values = read(g["values"], ALPSComplex)
@@ -69,8 +69,8 @@ function read(g::HDF5Group, ::Type{TimeGrid})
   return grid
 end
 
-function write(parent::Union{HDF5File, HDF5Group}, name::String, grid::TimeGrid)
-  g = g_create(parent, name)
+function write(parent::Union{HDF5.File, HDF5.Group}, name::String, grid::TimeGrid)
+  g = HDF5.create_group(parent, name)
 
   write(g, "contour", grid.contour)
 
@@ -83,14 +83,14 @@ function write(parent::Union{HDF5File, HDF5Group}, name::String, grid::TimeGrid)
   write(g, "branch_enums", branch_enums)
 end
 
-function read(g::HDF5Group, ::Type{TimeGF})
+function read(g::HDF5.Group, ::Type{TimeGF})
   data = read(g["data"], ALPSComplex)
   grid = read(g["mesh/1"], TimeGrid)
   return TimeGF(data, grid)
 end
 
-function write(parent::Union{HDF5File, HDF5Group}, name::String, gf::TimeGF)
-  g = g_create(parent, name)
+function write(parent::Union{HDF5.File, HDF5.Group}, name::String, gf::TimeGF)
+  g = HDF5.create_group(parent, name)
   write_alpscomplex(g, "data", gf.data)
   write(g, "mesh/1", gf.grid)
   write(g, "mesh/2", gf.grid)

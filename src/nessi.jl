@@ -1,4 +1,4 @@
-function nessi_read_les(h5g::HDF5Group)
+function nessi_read_les(h5g::HDF5.Group)
   nt = read(h5g, "nt")[]
   norb = read(h5g, "size1")[]
 
@@ -17,7 +17,7 @@ function nessi_read_les(h5g::HDF5Group)
   return les
 end
 
-function nessi_read_ret(h5g::HDF5Group)
+function nessi_read_ret(h5g::HDF5.Group)
   nt = read(h5g, "nt")[]
   norb = read(h5g, "size1")[]
 
@@ -37,7 +37,7 @@ function nessi_read_ret(h5g::HDF5Group)
   return ret
 end
 
-function nessi_read_tv(h5g::HDF5Group)
+function nessi_read_tv(h5g::HDF5.Group)
   nt = read(h5g, "nt")[]
   ntau = read(h5g, "ntau")[]
   norb = read(h5g, "size1")[]
@@ -47,12 +47,12 @@ function nessi_read_tv(h5g::HDF5Group)
   return tv
 end
 
-function nessi_read_mat(h5g::HDF5Group)
+function nessi_read_mat(h5g::HDF5.Group)
   mat = read(h5g, "mat")
   return mat
 end
 
-function nessi_read_gf(h5g::HDF5Group)
+function nessi_read_gf(h5g::HDF5.Group)
   les = nessi_read_les(h5g)
   ret = nessi_read_ret(h5g)
   tv  = nessi_read_tv(h5g)
