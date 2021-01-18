@@ -1,23 +1,23 @@
 using LinearAlgebra
 
-struct TimeGF <: AbstractArray{ComplexF64, 2}
-  data::Array{ComplexF64, 2}
+struct TimeGF <: AbstractArray{ComplexF64, 4}
+  data::Array{ComplexF64, 4}
   grid::TimeGrid
 end
 
-function TimeGF(grid::TimeGrid)
+function TimeGF(grid::TimeGrid, Norb=1)
   N = length(grid)
-  TimeGF(zeros(ComplexF64, N, N), grid)
+  TimeGF(zeros(ComplexF64, Norb, Norb, N, N), grid)
 end
 
-function TimeGF(f::Function, grid::TimeGrid; lower = false)
+function TimeGF(f::Function, grid::TimeGrid; Norb = 1, lower = false)
   N = length(grid)
-  gf = TimeGF(grid)
-
+  gf = TimeGF(grid, Norb)
+    
   for t1 in grid
     for t2 in grid
       lower && t1.idx < t2.idx && continue
-      gf[t1, t2] = f(t1, t2)
+      gf[t1, t2] = f(t1, t2) * Array(I, Norb, Norb)
     end
   end
   return gf
@@ -87,6 +87,11 @@ IndexStyle(::Type{<:TimeGF}) = IndexLinear()
 size(gf::TimeGF) = size(gf.data)
 Base.@propagate_inbounds getindex(gf::TimeGF, i::Int) = gf.data[i]
 Base.@propagate_inbounds setindex!(gf::TimeGF, v, i::Int) = gf.data[i] = v
+
+Base.@propagate_inbounds Base.getindex(gf::TimeGF, i::Int, j::Int) = view(gf.data[:, :, i, j])
+Base.@propagate_inbounds Base.setindex!(gf::TimeGF, v, i::Int, j::Int) = gf.data[:, :, i, j] = v
+
+
 function similar(gf::TimeGF, ::Type{S}) where S
   data = similar(gf.data, S)
   TimeGF(data, gf.grid) # TODO copy grid?
@@ -114,8 +119,6 @@ Base.@propagate_inbounds function getindex(gf::TimeGF, t1::TimeGridPoint, t2::Ti
   (!gtr && t1.idx == t2.idx) && (val += jump(gf))
   return val
 end
-
-
 Base.@propagate_inbounds setindex!(gf::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint) = gf[t1.idx, t2.idx] = v
 
 function jump(gf::TimeGF)
