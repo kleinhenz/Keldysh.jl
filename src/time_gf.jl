@@ -1,23 +1,45 @@
 using LinearAlgebra
 
-struct TimeGF <: AbstractArray{ComplexF64, 4}
+abstract type TimeGF <: AbstractArray{ComplexF64, 2} end
+
+struct TimeScalarGF <: TimeGF
+  data::Array{ComplexF64, 2}
+  grid::TimeGrid
+end
+
+struct TimeMatrixGF <: TimeGF
   data::Array{ComplexF64, 4}
   grid::TimeGrid
 end
 
-function TimeGF(grid::TimeGrid, Norb=1)
-  N = length(grid)
-  TimeGF(zeros(ComplexF64, Norb, Norb, N, N), grid)
+function TimeGF(data::Array{ComplexF64, N}, grid::TimeGrid) where {N}
+    if N == 2
+        return TimeScalarGF(data, grid)
+    elseif N == 4
+        return TimeMatrixGF(data, grid)
+    else
+        throw(ArgumentError())
+    end
 end
 
-function TimeGF(f::Function, grid::TimeGrid; Norb = 1, lower = false)
+function TimeGF(grid::TimeGrid, Norb = nothing)
+  N = length(grid)
+  if Norb == nothing
+      data = zeros(ComplexF64, N, N)
+  else
+      data = zeros(ComplexF64, Norb, Norb, N, N)
+  end
+  TimeGF(data, grid)
+end
+
+function TimeGF(f::Function, grid::TimeGrid; Norb = nothing, lower = false)
   N = length(grid)
   gf = TimeGF(grid, Norb)
     
   for t1 in grid
     for t2 in grid
       lower && t1.idx < t2.idx && continue
-      gf[t1, t2] = f(t1, t2) * Array(I, Norb, Norb)
+      gf[t1, t2] = f(t1, t2)
     end
   end
   return gf
@@ -88,8 +110,8 @@ size(gf::TimeGF) = size(gf.data)
 Base.@propagate_inbounds getindex(gf::TimeGF, i::Int) = gf.data[i]
 Base.@propagate_inbounds setindex!(gf::TimeGF, v, i::Int) = gf.data[i] = v
 
-Base.@propagate_inbounds Base.getindex(gf::TimeGF, i::Int, j::Int) = view(gf.data, :, :, i, j)
-Base.@propagate_inbounds Base.setindex!(gf::TimeGF, v, i::Int, j::Int) = gf.data[:, :, i, j] = v
+Base.@propagate_inbounds Base.getindex(gf::TimeMatrixGF, i::Int, j::Int) = view(gf.data, :, :, i, j)
+Base.@propagate_inbounds Base.setindex!(gf::TimeMatrixGF, v, i::Int, j::Int) = gf.data[:, :, i, j] = v
 
 
 function similar(gf::TimeGF, ::Type{S}) where S

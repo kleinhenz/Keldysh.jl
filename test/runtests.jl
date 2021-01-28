@@ -120,10 +120,10 @@ end
     @test Δt1 ≈ Δt2
 
     A = TimeGF(grid, Norb=2) do t1, t2
-      I * (t1.val.val - t2.val.val)        
+      Array(I, 2, 2) * (t1.val.val - t2.val.val)        
     end
     B = TimeGF(grid, Norb=2) do t1, t2
-      I * integrate(t -> 1.0, grid, t1, t2)
+      Array(I, 2, 2) * integrate(t -> 1.0, grid, t1, t2)
     end
     @test A ≈ B
       
