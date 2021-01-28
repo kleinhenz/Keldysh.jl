@@ -88,7 +88,7 @@ size(gf::TimeGF) = size(gf.data)
 Base.@propagate_inbounds getindex(gf::TimeGF, i::Int) = gf.data[i]
 Base.@propagate_inbounds setindex!(gf::TimeGF, v, i::Int) = gf.data[i] = v
 
-Base.@propagate_inbounds Base.getindex(gf::TimeGF, i::Int, j::Int) = view(gf.data[:, :, i, j])
+Base.@propagate_inbounds Base.getindex(gf::TimeGF, i::Int, j::Int) = view(gf.data, :, :, i, j)
 Base.@propagate_inbounds Base.setindex!(gf::TimeGF, v, i::Int, j::Int) = gf.data[:, :, i, j] = v
 
 
