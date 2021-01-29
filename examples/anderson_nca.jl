@@ -233,7 +233,7 @@ function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.fla
   p0 = map(1:4) do s
     TimeGF(grid, lower=true) do t1, t2
       val = -1.0im * exp(-1.0im * (t1.val.val - t2.val.val) * ϵ[s])
-      θ(t1.val, t2.val) || (val *= ξ[s] * ρ0[s])
+      heaviside(t1.val, t2.val) || (val *= ξ[s] * ρ0[s])
       return val
     end
   end
