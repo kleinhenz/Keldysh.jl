@@ -4,6 +4,23 @@ import Base.to_index
 
 using Keldysh, HDF5
 
+parse_param(::Type{T}, s::AbstractString) where T = parse(T, s)
+parse_param(::Type{String}, s::AbstractString) = string(s)
+function parse_params(args, param_def)
+  N = length(param_def)
+
+  names = ntuple(N) do i
+    param_def[i][2]
+  end
+
+  vals = map(param_def) do (type, name, default)
+    i = findfirst(isequal("--$name"), args)
+    return isnothing(i) ? default : parse_param(type, args[i+1])
+  end
+
+  return NamedTuple{names}(vals)
+end
+
 @enum SpinEnum spin_up = UInt8(1) spin_down=UInt8(2)
 to_index(A, sp::SpinEnum) = Int(sp)
 flip(sp::SpinEnum) = sp == spin_up ? spin_down : spin_up
@@ -196,6 +213,7 @@ function nca(p0, Δ, params::nca_params)
   data = nca_data(p0, Δ)
   N = length(data.grid)
   for d in 0:(N-1) # solve diagonal by diagonal
+    println("diagonal $(d+1)/$N")
     for j in 1:(N-d)
       i = j + d
       t1 = data.grid[i]
@@ -207,53 +225,103 @@ function nca(p0, Δ, params::nca_params)
   return data
 end
 
-"""
-    run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.flat_dos(), U = 4.0, ρ0 = [1.0, 0.0, 0.0, 0.0], tol=1e-6)
-
-Solve the Anderson impurity model on the two-branch Keldysh contour
-
-# Arguments
-- `tmax::Real=5.0`: the maximum time on the contour
-- `npts_real::Int=51`: the number of points used to discretize the forward/backward branches of the contour
-- `β::Real=1.0`: the inverse temperature of the bath
-- `dos=Keldysh.flat_dos()`: the bath density of states
-- `U::Real=4.0`: the coulomb interaction strength
-- `ρ0::Array{Float,1}=[1.0, 0.0, 0.0, 0.0]`: the initial (diagonal) impurity density matrix
-- `params::nca_params`: parameters controlling solution of nca equations
-"""
-function run_anderson_nca(;tmax=5.0, npts_real = 51, β = 1.0, dos = Keldysh.flat_dos(), U = 4.0, ρ0 = [1.0, 0.0, 0.0, 0.0], params::nca_params = nca_params())
-  @assert length(ρ0) == 4
-
-  c = twist(Contour(keldysh_contour, tmax=tmax))
-  grid = TimeGrid(c, npts_real = npts_real)
-  ϵ = [0.0, -U/2, -U/2, 0.0]
-
-  ξ = [1.0, -1.0, -1.0, 1.0]
-
-  p0 = map(1:4) do s
-    TimeGF(grid, lower=true) do t1, t2
-      val = -1.0im * exp(-1.0im * (t1.val.val - t2.val.val) * ϵ[s])
-      heaviside(t1.val, t2.val) || (val *= ξ[s] * ρ0[s])
-      return val
-    end
+function _compute_bare_prop(grid, ρ_s, ϵ_s, ξ_s)
+  TimeGF(grid, lower=true) do t1, t2
+    ϕ = integrate(t -> ϵ_s(real(t.val.val)), grid, t1, t2)
+    val = -1.0im * exp(-1.0im * ϕ)
+    heaviside(t1.val, t2.val) || (val *= ξ_s * ρ_s)
+    return val
   end
-
-  Δup = dos2gf(dos, β, grid)
-  Δ = [deepcopy(Δup) for _ in 1:2] # spin symmetric
-
-  data = nca(p0, Δ, params)
-
-  return data
 end
 
+function compute_bare_prop(grid, ρ, eps, U)
+  @assert grid.contour.domain == keldysh_contour
+  ϵ = [0.0, eps, eps, 2*eps + U]
+  ξ = [1.0, -1.0, -1.0, 1.0]
+  p0 = map(1:4) do s
+    _compute_bare_prop(grid, ρ[s], t -> ϵ[s], ξ[s])
+  end
+end
+
+function compute_bare_prop(grid, eps, U)
+  @assert grid.contour.domain == full_contour
+  ϵ = [0.0, eps, eps, 2*eps + U]
+  ξ = [1.0, -1.0, -1.0, 1.0]
+  p0 = map(1:4) do s
+    _compute_bare_prop(grid, 1.0, t -> ϵ[s], ξ[s])
+  end
+end
+
+param_def = [(String, :contour, "keldysh"),
+             (Float64, :tmax, 10.0),
+             (Float64, :beta, 5.0),
+             (Int, :nt, 200),
+             (Int, :ntau, 100),
+             (Float64, :tol, 1e-6),
+             (Int, :max_iter, 200),
+             (String, :mode, "nca"),
+             (Float64, :D, 10.0),
+             (Float64, :eps, -3.0),
+             (Float64, :U, 8.0),
+             (String, :output_file, "output.h5")]
+
 function main()
-  dos = Keldysh.flat_dos(ν=10.0, D=10.0)
-  params = nca_params(max_order = 1)
-  data = run_anderson_nca(β=1.0, tmax=5.0, npts_real = 101, U = 8.0, dos=dos, params=params)
+  println("running nca...")
+
+  p = parse_params(ARGS, param_def)
+
+  for (k,v) in pairs(p)
+    println("$k : $v")
+  end
+
+  grid =
+  if p.contour == "keldysh"
+    c = twist(Contour(keldysh_contour, tmax=p.tmax))
+    TimeGrid(c, npts_real = p.nt+1)
+  elseif p.contour == "full"
+    c = twist(Contour(full_contour, tmax=p.tmax, β=p.beta))
+    TimeGrid(c, npts_real = p.nt+1, npts_imag = p.ntau+1)
+  else
+    error("unknown contour $(p.contour)")
+  end
+
+  bare_prop =
+  if grid.contour.domain == keldysh_contour
+    ρ = [1.0, 0.0, 0.0, 0.0]
+    compute_bare_prop(grid, ρ, p.eps, p.U)
+  elseif grid.contour.domain == full_contour
+    compute_bare_prop(grid, p.eps, p.U)
+  end
+
+  dos = Keldysh.flat_dos(ν=10.0, D=p.D)
+  Δup = dos2gf(dos, p.beta, grid)
+
+  Δ = [deepcopy(Δup) for _ in 1:2] # spin symmetric
+
+  max_order =
+  if p.mode == "nca"
+    1
+  elseif p.mode == "oca"
+    2
+  else
+    error("unknown mode $(p.mode)")
+  end
+
+  params = nca_params(dyson_tol = p.tol, dyson_max_iter = p.max_iter,  max_order = max_order)
+
+  data = nca(bare_prop, Δ, params)
+
   t, ρt, Zt = populations(data.p)
-  h5write("output.h5", "output/rho", ρt)
-  h5write("output.h5", "output/Z", ρt)
-  h5write("output.h5", "output/t", t)
+
+  h5open(p.output_file, "w") do h5f
+    for (k,v) in pairs(p)
+      write(h5f, "/input/params/$k", v)
+    end
+
+    h5f["/output/obs/pop/rho"] = ρt
+    h5f["/output/obs/pop/Z"] = Zt
+    h5f["/output/obs/pop/t"] = t
+  end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
