@@ -1,6 +1,6 @@
 # Keldysh.jl
 
-[![Build Status](https://travis-ci.com/kleinhenz/Keldysh.jl.svg?branch=master)](https://travis-ci.com/kleinhenz/Keldysh.jl)
+[![Build Status](https://github.com/kleinhenz/Keldysh.jl/workflows/CI/badge.svg?branch=master)](https://github.com/kleinhenz/Keldysh.jl/actions)
 
 `Keldysh.jl` provides a set of tools for working with non-equilibrium Keldysh Green's functions.
 It contains types to represent contours, grids defined on these contours, and two-time Green's functions defined on these grids.
