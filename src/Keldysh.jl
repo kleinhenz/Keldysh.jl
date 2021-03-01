@@ -13,7 +13,7 @@ export ContourEnum, full_contour, keldysh_contour, imaginary_contour, Contour, t
 export TimeGrid, TimeGridPoint, branch_bounds, integrate, step, realtimes, imagtimes
 
 # TimeGF functions
-export TimeGF, TimeGFTranspose, jump
+export AbstractTimeGF, TimeGF
 
 # DOS functions
 export dos_integrator, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
@@ -28,6 +28,7 @@ include("branch.jl")
 include("contour.jl")
 include("time_grid.jl")
 include("time_gf.jl")
+include("observables.jl")
 include("dos.jl")
 include("generate_gf.jl")
 include("hdf5.jl")

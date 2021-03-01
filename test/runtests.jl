@@ -98,35 +98,35 @@ end
     grid = TimeGrid(c, npts_real=51)
 
     Δt1 = TimeGF(grid) do t1, t2
-      t1.val.val - t2.val.val
+      I(1) * (t1.val.val - t2.val.val)
     end
 
     Δt2 = TimeGF(grid) do t1, t2
-      integrate(t -> 1.0, grid, t1, t2)
+      I(1) * integrate(t -> 1.0, grid, t1, t2)
     end
-    @test Δt1 ≈ Δt2
+    @test Δt1.data ≈ Δt2.data
   end
 
   let tmax = 2.0, c = twist(Contour(keldysh_contour, tmax=tmax))
     grid = TimeGrid(c, npts_real=51)
 
     Δt1 = TimeGF(grid) do t1, t2
-      t1.val.val - t2.val.val
+      I(1) * (t1.val.val - t2.val.val)
     end
 
     Δt2 = TimeGF(grid) do t1, t2
-      integrate(t -> 1.0, grid, t1, t2)
+      I(1) * integrate(t -> 1.0, grid, t1, t2)
     end
-    @test Δt1 ≈ Δt2
+    @test Δt1.data ≈ Δt2.data
 
-    A = TimeGF(grid, Norb=2) do t1, t2
-      Array(I, 2, 2) * (t1.val.val - t2.val.val)        
+    A = TimeGF(grid, 2) do t1, t2
+      I(2) * (t1.val.val - t2.val.val)
     end
-    B = TimeGF(grid, Norb=2) do t1, t2
-      Array(I, 2, 2) * integrate(t -> 1.0, grid, t1, t2)
+    B = TimeGF(grid, 2) do t1, t2
+      I(2) * integrate(t -> 1.0, grid, t1, t2)
     end
-    @test A ≈ B
-      
+    @test A.data ≈ B.data
+
   end
 
 end
@@ -141,7 +141,7 @@ end
     hyb2 = gf_1level(grid; ϵ, β)
 
     # gf_1level is gf for a delta function spectrum
-    @test isapprox(hyb1, hyb2, atol=ν, norm=x -> norm(x, Inf))
+    @test isapprox(hyb1.data, hyb2.data, atol=ν, norm=x -> norm(x, Inf))
   end
 end
 
