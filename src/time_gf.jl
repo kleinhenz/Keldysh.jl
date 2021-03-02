@@ -2,34 +2,40 @@ using LinearAlgebra
 
 abstract type AbstractTimeGF end
 
-struct TimeGF <: AbstractTimeGF
-  data::Array{ComplexF64, 4}
+struct TimeGF{N} <: AbstractTimeGF
   grid::TimeGrid
+  data::Array{ComplexF64, 4}
 end
 
 function TimeGF(grid::TimeGrid, norb = 1)
   N = length(grid)
   data = zeros(ComplexF64, norb, norb, N, N)
-  TimeGF(data, grid)
+  TimeGF{norb}(grid, data)
 end
+
+norbitals(::Type{TimeGF{N}}) where N = N
+norbitals(x::TimeGF) = norbitals(typeof(x))
 
 function TimeGF(f::Function, grid::TimeGrid, norb = 1; lower = false)
   N = length(grid)
-  gf = TimeGF(grid, norb)
+  G = TimeGF(grid, norb)
 
   for t1 in grid
     for t2 in grid
       lower && t1.idx < t2.idx && continue
-      gf[t1, t2] = f(t1, t2)
+      G[t1, t2] = f(t1, t2)
     end
   end
-  return gf
+  return G
 end
 
-function TimeGF(les::AbstractArray{ComplexF64,4},
-                ret::AbstractArray{ComplexF64,4},
-                tv::AbstractArray{ComplexF64,4},
-                mat::AbstractArray{Float64,3},
+AbstractArray4 = AbstractArray{T,4} where T
+AbstractArray3 = AbstractArray{T,3} where T
+
+function TimeGF(les::AbstractArray4,
+                ret::AbstractArray4,
+                tv::AbstractArray4,
+                mat::AbstractArray3,
                 grid::TimeGrid)
 
   @assert grid.contour.domain == full_contour
@@ -71,8 +77,8 @@ function TimeGF(les::AbstractArray{ComplexF64,4},
   return G
 end
 
-function TimeGF(les::AbstractArray{ComplexF64,4},
-                ret::AbstractArray{ComplexF64,4},
+function TimeGF(les::AbstractArray4,
+                ret::AbstractArray4,
                 grid::TimeGrid)
 
   @assert grid.contour.domain == keldysh_contour
@@ -95,28 +101,33 @@ function TimeGF(les::AbstractArray{ComplexF64,4},
 end
 
 #### Indexing ###
-Base.@propagate_inbounds function Base.getindex(gf::TimeGF, i::Int, j::Int)
-  gf.data[:, :, i, j]
+Base.@propagate_inbounds function Base.getindex(G::TimeGF, i::Int, j::Int)
+  G.data[:, :, i, j]
 end
 
-Base.@propagate_inbounds function Base.setindex!(gf::TimeGF, v::AbstractMatrix, i::Int, j::Int)
-  gf.data[:, :, i, j] = v
+Base.@propagate_inbounds function Base.setindex!(G::TimeGF, v, i::Int, j::Int)
+  G.data[:, :, i, j] = v
 end
 
 # indexing with TimeGridPoint
-Base.@propagate_inbounds function getindex(gf::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
-  val = gf[t1.idx, t2.idx]
-  (!gtr && t1.idx == t2.idx) && (val += jump(gf))
-  return val
-end
-Base.@propagate_inbounds function setindex!(gf::TimeGF, v::AbstractMatrix, t1::TimeGridPoint, t2::TimeGridPoint)
-  gf[t1.idx, t2.idx] = v
+Base.@propagate_inbounds function getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
+  val = G[t1.idx, t2.idx]
+  (!gtr && t1.idx == t2.idx) && (val += jump(G))
+  if norbitals(G) == 1
+    return val[]
+  else
+    return val
+  end
 end
 
-function jump(gf::TimeGF)
-  t0_plus = branch_bounds(gf.grid, forward_branch)[1]
-  t0_minus = branch_bounds(gf.grid, backward_branch)[2]
-  return gf[t0_plus, t0_minus] - gf[t0_plus, t0_plus]
+Base.@propagate_inbounds function setindex!(G::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+  G[t1.idx, t2.idx] = v
+end
+
+function jump(G::TimeGF)
+  t0_plus = branch_bounds(G.grid, forward_branch)[1]
+  t0_minus = branch_bounds(G.grid, backward_branch)[2]
+  return G[t0_plus, t0_minus] - G[t0_plus, t0_plus]
 end
 
 function getindex(G::TimeGF, b1::BranchEnum, b2::BranchEnum)
@@ -155,7 +166,7 @@ function getindex(G::TimeGF, component::Symbol)
     adv = G[:lesser] - G[:greater]
     return adv
   elseif component == :leftmixing
-    gf[backward_branch, imaginary_branch]
+    G[backward_branch, imaginary_branch]
   else
     throw(ArgumentError("component $component not recognized"))
   end
