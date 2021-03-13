@@ -1,5 +1,6 @@
 struct TimeGridPoint
-  idx::Int64
+  idx::Int64 # contour index
+  ridx::Int64 # real/imag time index
   val::BranchPoint
 end
 
@@ -19,8 +20,11 @@ struct TimeGrid <: AbstractVector{TimeGridPoint}
       @assert npts > 1 "every branch must have at least two points (b = $b, npts = $npts)"
 
       indices = (1:npts) .+ length(points)
+
+      r_indices = b.domain == backward_branch ? reverse(1:npts) : 1:npts
+
       branch_points = b.(range(0, 1, length=npts))
-      time_grid_points = TimeGridPoint.(indices, branch_points)
+      time_grid_points = TimeGridPoint.(indices, r_indices, branch_points)
 
       append!(points, time_grid_points)
       append!(step, (b.max_val - b.min_val) / (npts - 1))
