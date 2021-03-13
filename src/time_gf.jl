@@ -54,22 +54,16 @@ function TimeGF(les::AbstractArray4,
 
   G = TimeGF(grid, norb) do t1, t2
     greater = heaviside(t1.val, t2.val)
+    i = t1.ridx
+    j = t2.ridx
     if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
         (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
-      i = findfirst(isapprox(real(t1.val.val)), t)
-      j = findfirst(isapprox(real(t2.val.val)), t)
       greater ? ret[:,:,i,j] .+ les[:,:,i,j] : les[:,:,i,j]
     elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
-      i = findfirst(isapprox(imag(t1.val.val)), -tau)
-      j = findfirst(isapprox(real(t2.val.val)), t)
       conj(tv[:,:,j, ntau+1-i]) # akoi 19c
     elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
-      i = findfirst(isapprox(real(t1.val.val)), t)
-      j = findfirst(isapprox(imag(t2.val.val)), -tau)
       tv[:,:,i,j]
     else
-      i = findfirst(isapprox(imag(t1.val.val)), -tau)
-      j = findfirst(isapprox(imag(t2.val.val)), -tau)
       greater ? 1.0im * mat[:,:,i - j + 1] : -1.0im * mat[:,:,i - j + ntau]
     end
   end
@@ -92,8 +86,8 @@ function TimeGF(les::AbstractArray4,
 
   G = TimeGF(grid) do t1, t2
     greater = heaviside(t1.val, t2.val)
-    i = findfirst(isapprox(real(t1.val.val)), t)
-    j = findfirst(isapprox(real(t2.val.val)), t)
+    i = t1.ridx
+    j = t2.ridx
     greater ? ret[:,:,i,j] .+ les[:,:,i,j] : les[:,:,i,j]
   end
 
