@@ -4,6 +4,8 @@ import Base.to_index
 
 using Keldysh, HDF5
 
+GREEN = TimeGF{1}
+
 parse_param(::Type{T}, s::AbstractString) where T = parse(T, s)
 parse_param(::Type{String}, s::AbstractString) = string(s)
 function parse_params(args, param_def)
@@ -77,14 +79,14 @@ end
 nca_params(; dyson_tol = 1e-6, dyson_dir = forward_prop, dyson_max_iter = 100, max_order = 1) = nca_params(dyson_tol, dyson_dir, dyson_max_iter, max_order)
 
 struct nca_data
-  p0::Array{TimeGF,1} # bare propagator
-  Δ::Array{TimeGF, 1} # hybridization function
+  p0::Array{GREEN,1} # bare propagator
+  Δ::Array{GREEN, 1} # hybridization function
 
-  p::Array{TimeGF,1} # dressed propagator
-  Σ::Array{TimeGF,1} # self-energy
-  Σxp::Array{TimeGF,1} # self-energy convolved with propagator
-  pxΣ::Array{TimeGF,1} # propagator convolved with self-energy
-  G::Array{TimeGF,1} # green's function
+  p::Array{GREEN,1} # dressed propagator
+  Σ::Array{GREEN,1} # self-energy
+  Σxp::Array{GREEN,1} # self-energy convolved with propagator
+  pxΣ::Array{GREEN,1} # propagator convolved with self-energy
+  G::Array{GREEN,1} # green's function
 
   grid::TimeGrid # time grid
   states::NTuple{4, FockState}
@@ -148,9 +150,7 @@ function Σoca(data::nca_data, t1::TimeGridPoint, t4::TimeGridPoint, st_sigma::F
     h0 = t3 -> 1.0im * (st_sigma[sp0] ? Δ[sp0][t1, t3] : -Δ[sp0][t3, t1, false])
 
     # integrate over t3
-    # FIXME workaround for failure to elide fancier indexing (seems to be problem in julia 1.5)
-    f = t2 -> h1(t2) * integrate(t3 -> h0(t3) * p[st1].data[t2.idx, t3.idx] * p[st2].data[t3.idx, t4.idx], grid, t2, t4)
-#    f = t2 -> h1(t2) * integrate(t3 -> h0(t3) * p[st1][t2, t3] * p[st2][t3, t4], grid, t2, t4)
+    f = t2 -> h1(t2) * integrate(t3 -> h0(t3) * p[st1][t2, t3] * p[st2][t3, t4], grid, t2, t4)
 
     # integrate over t2
     return integrate(t2 -> p[st0][t1, t2] * f(t2), grid, t1, t4)
@@ -160,8 +160,8 @@ end
 function dyson(data::nca_data, t1::TimeGridPoint, t2::TimeGridPoint, params::nca_params)
   @assert t1.idx >= t2.idx
 
-  p_t1t2_cur = zeros(eltype(data.p[1]), length(data.states))
-  p_t1t2_next = zeros(eltype(data.p[1]), length(data.states))
+  p_t1t2_cur = zeros(ComplexF64, length(data.states))
+  p_t1t2_next = zeros(ComplexF64, length(data.states))
 
   for st in data.states
     p_t1t2_cur[st] = data.p0[st][t1,t2]
