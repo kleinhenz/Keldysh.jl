@@ -5,6 +5,9 @@ using Keldysh
 suite = BenchmarkGroup()
 
 function setup_indexing_benchmark()
+  suite["indexing"] = BenchmarkGroup()
+
+
   c = Contour(full_contour, tmax=2.0, β=5.0)
   grid = TimeGrid(c, npts_real=41, npts_imag=101)
   N = length(grid)
@@ -12,10 +15,13 @@ function setup_indexing_benchmark()
   dos = Keldysh.bethe_dos()
   G = dos2gf(dos, 5.0, grid);
 
+  b = @benchmarkable $G.data[1,1,i,j] setup=(i=rand(1:$N); j=rand(1:$N)) evals=1 samples=1000000
+  suite["indexing"]["raw"] = b
+
   # set evals=1 so we are benchmarking random accesses rather than repeated accesses to the same element
   b = @benchmarkable $G[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)]) evals=1 samples=1000000
-  tune!(b)
-  suite["indexing"] = b
+  suite["indexing"]["TimeGridPoint"] = b
+
 end
 
 function main()
