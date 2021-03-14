@@ -37,18 +37,18 @@ end
 
 ### AbstractArray Interface ###
 IndexStyle(::Type{<:TimeGrid}) = IndexLinear()
-size(grid::TimeGrid) = size(grid.points)
-getindex(grid::TimeGrid, i::Int) = grid.points[i]
-setindex!(grid::TimeGrid, v::TimeGridPoint, i::Int) = grid.points[i] = v
+Base.size(grid::TimeGrid) = size(grid.points)
+Base.getindex(grid::TimeGrid, i::Int) = grid.points[i]
+Base.setindex!(grid::TimeGrid, v::TimeGridPoint, i::Int) = grid.points[i] = v
 
 "get ith point on branch b of grid"
-function getindex(grid::TimeGrid, b::BranchEnum, i::Int)
+function Base.getindex(grid::TimeGrid, b::BranchEnum, i::Int)
   bounds = branch_bounds(grid, b)
   return grid[bounds[1].idx + i - 1]
 end
 
 "get all points on branch b of grid"
-function getindex(grid::TimeGrid, b::BranchEnum)
+function Base.getindex(grid::TimeGrid, b::BranchEnum)
   bounds = branch_bounds(grid, b)
   return grid[bounds[1].idx:bounds[2].idx]
 end
@@ -57,12 +57,12 @@ function branch_bounds(grid::TimeGrid, b::BranchEnum)
   return grid.branch_bounds[grid.contour.branch_indices[Int(b)]]
 end
 
-function length(grid::TimeGrid, b::BranchEnum)
+function Base.length(grid::TimeGrid, b::BranchEnum)
   bounds = branch_bounds(grid, b)
   return bounds[2].idx - bounds[1].idx + 1
 end
 
-function step(grid::TimeGrid, b::BranchEnum)
+function Base.step(grid::TimeGrid, b::BranchEnum)
   return grid.step[grid.contour.branch_indices[Int(b)]]
 end
 

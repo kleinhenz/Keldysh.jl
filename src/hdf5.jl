@@ -2,7 +2,7 @@ using HDF5
 
 struct ALPSComplex end
 
-function read(g::HDF5.Dataset, ::Type{ALPSComplex})
+function Base.read(g::HDF5.Dataset, ::Type{ALPSComplex})
   data = read(g)
 
   # flip all dimensions since data is stored as row-major
@@ -30,7 +30,7 @@ function write_alpscomplex(parent::Union{HDF5.File, HDF5.Group}, name::String, d
   attributes(parent[name])["__complex__"] = Int8(1)
 end
 
-function read(g::HDF5.Group, ::Type{Contour})
+function Base.read(g::HDF5.Group, ::Type{Contour})
   nb = read(g, "size")
   branches = Branch[]
   for i in 0:nb-1
@@ -41,7 +41,7 @@ function read(g::HDF5.Group, ::Type{Contour})
   return Contour(branches)
 end
 
-function write(parent::Union{HDF5.File, HDF5.Group}, name::String, c::Contour)
+function Base.write(parent::Union{HDF5.File, HDF5.Group}, name::String, c::Contour)
   g = HDF5.create_group(parent, name)
   g["size"] = UInt(nbranches(c))
   for (i, branch) in enumerate(c.branches)
@@ -50,7 +50,7 @@ function write(parent::Union{HDF5.File, HDF5.Group}, name::String, c::Contour)
   end
 end
 
-function read(g::HDF5.Group, ::Type{TimeGrid})
+function Base.read(g::HDF5.Group, ::Type{TimeGrid})
   c = read(g["contour"], Contour)
   branch_enums = read(g["branch_enums"])
   values = read(g["values"], ALPSComplex)
@@ -69,7 +69,7 @@ function read(g::HDF5.Group, ::Type{TimeGrid})
   return grid
 end
 
-function write(parent::Union{HDF5.File, HDF5.Group}, name::String, grid::TimeGrid)
+function Base.write(parent::Union{HDF5.File, HDF5.Group}, name::String, grid::TimeGrid)
   g = HDF5.create_group(parent, name)
 
   write(g, "contour", grid.contour)
@@ -83,16 +83,16 @@ function write(parent::Union{HDF5.File, HDF5.Group}, name::String, grid::TimeGri
   write(g, "branch_enums", branch_enums)
 end
 
-function read(g::HDF5.Group, ::Type{TimeGF})
+function Base.read(g::HDF5.Group, ::Type{TimeGF})
   data = read(g["data"], ALPSComplex)
   grid = read(g["mesh/1"], TimeGrid)
   return TimeGF(data, grid)
 end
 
-function write(parent::Union{HDF5.File, HDF5.Group}, name::String, gf::TimeGF)
+function Base.write(parent::Union{HDF5.File, HDF5.Group}, name::String, G::TimeGF)
   g = HDF5.create_group(parent, name)
-  write_alpscomplex(g, "data", gf.data)
-  write(g, "mesh/1", gf.grid)
-  write(g, "mesh/2", gf.grid)
+  write_alpscomplex(g, "data", G.data)
+  write(g, "mesh/1", G.grid)
+  write(g, "mesh/2", G.grid)
   write(g, "mesh/N", 2)
 end

@@ -89,7 +89,7 @@ end
 
 const θ = heaviside
 
-function in(b::BranchEnum, c::ContourEnum)
+function Base.in(b::BranchEnum, c::ContourEnum)
   if c == keldysh_contour
     return b == imaginary_branch ? false : true
   elseif c == imaginary_branch
@@ -99,6 +99,6 @@ function in(b::BranchEnum, c::ContourEnum)
   end
 end
 
-function in(b::BranchEnum, c::Contour)
+function Base.in(b::BranchEnum, c::Contour)
   return in(b, c.domain)
 end
