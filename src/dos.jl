@@ -1,6 +1,15 @@
 using QuadGK
 using Elliptic
 
+abstract type AbstractDOS end
+
+struct DOS{F} <: AbstractDOS
+  ωmin::Real
+  ωmax::Real
+  A::F
+end
+(dos::DOS)(ω) = dos.A(ω)
+
 """
 Descriptor of an integrable singularity in DOS
 """
@@ -49,11 +58,12 @@ end
 """
 Support limits of a DOS object
 """
-dos_support_limits(dos) = (-Inf, Inf)
+dos_support_limits(dos::AbstractDOS) = (-Inf, Inf)
+dos_support_limits(dos::DOS) = (dos.ωmin, dos.ωmax)
 dos_support_limits(dos::SingularDOS) = (dos.ωmin, dos.ωmax)
 
 """Integrator for general DOS objects"""
-function dos_integrator(f, dos; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
+function dos_integrator(f, dos::AbstractDOS; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
   limits = dos_support_limits(dos)
   integral, err = quadgk(ω -> f(ω) * dos(ω),
                          limits[1], limits[2],
@@ -97,14 +107,14 @@ end
 
 return flat band DOS with half-bandwith D and inverse cutoff width ν centered at zero
 """
-flat_dos(; ν=1.0, D=5.0, μ=0.0) = ω -> (1.0/π) / ((1 + exp(ν * (ω - μ - D))) * (1 + exp(-ν * (ω - μ + D))))
+flat_dos(; ν=1.0, D=5.0, μ=0.0) = DOS(-Inf, Inf, ω -> (1.0/π) / ((1 + exp(ν * (ω - μ - D))) * (1 + exp(-ν * (ω - μ + D)))))
 
 """
 `gaussian_dos(; ϵ=1.0, ν=1.0)`
 
 return normalized Gaussian DOS centered at ϵ with width ν
 """
-gaussian_dos(; ϵ=1.0, ν=1.0) = ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν))
+gaussian_dos(; ϵ=1.0, ν=1.0) = DOS(-Inf, Inf, ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν)))
 
 """
 `bethe_dos(; t=1.0)`
