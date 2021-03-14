@@ -4,7 +4,7 @@ end
 
 function gf_1level(grid::TimeGrid; ϵ, β)
   TimeGF(grid, 1) do t1, t2
-    I(1) * gf_1level(t1.val, t2.val; ϵ, β)
+    gf_1level(t1.val, t2.val; ϵ, β)
   end
 end
 
