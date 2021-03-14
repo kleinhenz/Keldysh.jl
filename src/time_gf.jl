@@ -117,13 +117,13 @@ Base.@propagate_inbounds function Base.setindex!(G::TimeGF, v, i::Int, j::Int)
 end
 
 # indexing with TimeGridPoint
-function getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
+function Base.getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
   val = @inbounds G[t1.idx, t2.idx]
   (!gtr && t1.idx == t2.idx) && (val += jump(G))
   return val
 end
 
-function setindex!(G::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+function Base.setindex!(G::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
   @inbounds G[t1.idx, t2.idx] = v
 end
 

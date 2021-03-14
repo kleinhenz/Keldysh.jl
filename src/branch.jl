@@ -32,6 +32,6 @@ end
 
 (b::Branch)(ref::Real) = get_point(b, ref)
 
-function length(b::Branch)
+function Base.length(b::Branch)
   return abs(b.max_val - b.min_val)
 end
