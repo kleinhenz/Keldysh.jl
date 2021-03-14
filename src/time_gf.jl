@@ -84,11 +84,12 @@ function TimeGF(les::AbstractArray4,
   t = realtimes(grid)
 
   nt = length(t)
+  norb = size(les, 1)
 
-  @assert size(les) == (nt,nt)
-  @assert size(ret) == (nt,nt)
+  @assert size(les) == (norb,norb,nt,nt)
+  @assert size(ret) == (norb,norb,nt,nt)
 
-  G = TimeGF(grid) do t1, t2
+  G = TimeGF(grid,norb) do t1, t2
     greater = heaviside(t1.val, t2.val)
     i = t1.ridx
     j = t2.ridx
