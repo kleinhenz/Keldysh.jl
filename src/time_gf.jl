@@ -56,6 +56,8 @@ function TimeGF(les::AbstractArray4,
     greater = heaviside(t1.val, t2.val)
     i = t1.ridx
     j = t2.ridx
+
+    x =
     if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
         (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
       greater ? ret[:,:,i,j] .+ les[:,:,i,j] : les[:,:,i,j]
@@ -66,6 +68,8 @@ function TimeGF(les::AbstractArray4,
     else
       greater ? 1.0im * mat[:,:,i - j + 1] : -1.0im * mat[:,:,i - j + ntau]
     end
+
+    return norb == 1 ? x[] : x
   end
 
   return G
@@ -88,7 +92,8 @@ function TimeGF(les::AbstractArray4,
     greater = heaviside(t1.val, t2.val)
     i = t1.ridx
     j = t2.ridx
-    greater ? ret[:,:,i,j] .+ les[:,:,i,j] : les[:,:,i,j]
+    x = greater ? ret[:,:,i,j] .+ les[:,:,i,j] : les[:,:,i,j]
+    return norb == 1 ? x[] : x
   end
 
   return G
@@ -96,26 +101,30 @@ end
 
 #### Indexing ###
 Base.@propagate_inbounds function Base.getindex(G::TimeGF, i::Int, j::Int)
-  G.data[:, :, i, j]
-end
-
-Base.@propagate_inbounds function Base.setindex!(G::TimeGF, v, i::Int, j::Int)
-  G.data[:, :, i, j] = v
-end
-
-# indexing with TimeGridPoint
-Base.@propagate_inbounds function getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
-  val = G[t1.idx, t2.idx]
-  (!gtr && t1.idx == t2.idx) && (val += jump(G))
   if norbitals(G) == 1
-    return val[]
+    return G.data[1,1,i,j]
   else
-    return val
+    return G.data[:,:,i,j]
   end
 end
 
-Base.@propagate_inbounds function setindex!(G::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
-  G[t1.idx, t2.idx] = v
+Base.@propagate_inbounds function Base.setindex!(G::TimeGF, v, i::Int, j::Int)
+  if norbitals(G) == 1
+    G.data[1, 1, i, j] = v
+  else
+    G.data[:,:,i,j] = v
+  end
+end
+
+# indexing with TimeGridPoint
+function getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
+  val = @inbounds G[t1.idx, t2.idx]
+  (!gtr && t1.idx == t2.idx) && (val += jump(G))
+  return val
+end
+
+function setindex!(G::TimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+  @inbounds G[t1.idx, t2.idx] = v
 end
 
 function jump(G::TimeGF)
@@ -142,17 +151,20 @@ function getindex(G::TimeGF, b1::BranchEnum, b2::BranchEnum)
     end
   end
 
-  return out
+  return norb == 1 ? out[1,1,:,:] : out
 end
 
 function getindex(G::TimeGF, component::Symbol)
   grid = G.grid
+  norb = norbitals(G)
+
   if component == :greater
     return G[backward_branch, forward_branch]
   elseif component == :lesser
     return G[forward_branch, backward_branch]
   elseif component == :matsubara
-    real(-im .* G[imaginary_branch, imaginary_branch][:,:,:,1])
+    X = real(-im .* G[imaginary_branch, imaginary_branch])
+    return norb == 1 ? X[:,1] : X[:,:,:,1]
   elseif component == :retarded
     ret = G[:greater] - G[:lesser]
     return ret
