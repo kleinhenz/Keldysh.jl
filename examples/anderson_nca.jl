@@ -4,7 +4,7 @@ import Base.to_index
 
 using Keldysh, HDF5
 
-GREEN = TimeGF{1}
+GREEN = TimeGF{ComplexF64, 1}
 
 parse_param(::Type{T}, s::AbstractString) where T = parse(T, s)
 parse_param(::Type{String}, s::AbstractString) = string(s)
