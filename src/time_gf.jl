@@ -53,12 +53,18 @@ end
 struct TimeGF{T, norb} <: AbstractTimeGF{T, norb}
   grid::TimeGrid
   data::Array{T, 4}
+
+  function TimeGF(grid::TimeGrid, data::Array{T,4}) where T
+    @assert size(data,1) == size(data,2)
+    norb = size(data,1)
+    return new{T,norb}(grid, data)
+  end
 end
 
 function TimeGF(::Type{T}, grid::TimeGrid, norb = 1) where T <: Number
   N = length(grid)
   data = zeros(T, norb, norb, N, N)
-  TimeGF{T, norb}(grid, data)
+  TimeGF(grid, data)
 end
 TimeGF(grid::TimeGrid, norb = 1) = TimeGF(ComplexF64, grid, norb)
 
