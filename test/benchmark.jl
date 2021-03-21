@@ -13,15 +13,22 @@ function setup_indexing_benchmark()
   N = length(grid)
 
   dos = Keldysh.bethe_dos()
-  G = dos2gf(dos, 5.0, grid);
+  G1 = dos2gf(dos, 5.0, grid);
 
-  b = @benchmarkable $G.data[1,1,i,j] setup=(i=rand(1:$N); j=rand(1:$N)) evals=1 samples=1000000
-  suite["indexing"]["raw"] = b
+  G2 = Keldysh.FullTimeGF(grid) do t1,t2
+    G1[t1,t2]
+  end
+
+  b = @benchmarkable $G1.data[1,1,i,j] setup=(i=rand(1:$N); j=rand(1:$N)) evals=1 samples=1000000
+  suite["indexing"]["TimeGF_raw"] = b
 
   # set evals=1 so we are benchmarking random accesses rather than repeated accesses to the same element
-  b = @benchmarkable $G[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)]) evals=1 samples=1000000
-  suite["indexing"]["TimeGridPoint"] = b
+  b = @benchmarkable $G1[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)]) evals=1 samples=1000000
+  suite["indexing"]["TimeGF_TimeGridPoint"] = b
 
+  # set evals=1 so we are benchmarking random accesses rather than repeated accesses to the same element
+  b = @benchmarkable $G2[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)]) evals=1 samples=1000000
+  suite["indexing"]["FullTimeGF_TimeGridPoint"] = b
 end
 
 function main()
