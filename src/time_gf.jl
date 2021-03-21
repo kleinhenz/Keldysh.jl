@@ -4,6 +4,8 @@ abstract type AbstractTimeGF{T, norb} end
 
 norbitals(::Type{<:AbstractTimeGF{T, norb}}) where {T,norb} = norb
 norbitals(x::AbstractTimeGF) = norbitals(typeof(x))
+Base.eltype(::Type{<:AbstractTimeGF{T,norb}}) where {T, norb} = T
+Base.eltype(X::AbstractTimeGF) = eltype(typeof(X))
 
 function Base.getindex(G::AbstractTimeGF, b1::BranchEnum, b2::BranchEnum)
   grid = G.grid
@@ -171,9 +173,9 @@ Base.@propagate_inbounds function Base.setindex!(G::TimeGF, v, i::Int, j::Int)
 end
 
 # indexing with TimeGridPoint
-function Base.getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, gtr=true)
+function Base.getindex(G::TimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   val = @inbounds G[t1.idx, t2.idx]
-  (!gtr && t1.idx == t2.idx) && (val += jump(G))
+  (!greater && t1.idx == t2.idx) && (val += jump(G))
   return val
 end
 
@@ -185,4 +187,116 @@ function jump(G::TimeGF)
   t0_plus = branch_bounds(G.grid, forward_branch)[1]
   t0_minus = branch_bounds(G.grid, backward_branch)[2]
   return G[t0_plus, t0_minus] - G[t0_plus, t0_plus]
+end
+
+struct FullTimeGF{T, norb} <: AbstractTimeGF{T, norb}
+  grid::TimeGrid
+  gtr::AntiHermitianStorage{T,norb}
+  les::AntiHermitianStorage{T,norb}
+  rm::GenericStorage{T,norb}
+  mat::ImaginaryTimeStorage{T,norb}
+  ntau::Int # TODO move to grid
+  nt::Int # TODO move to grid
+
+  function FullTimeGF(grid::TimeGrid,
+                      gtr::AntiHermitianStorage{T,norb},
+                      les::AntiHermitianStorage{T,norb},
+                      rm::GenericStorage{T,norb},
+                      mat::ImaginaryTimeStorage{T,norb}) where {T, norb}
+
+    nt = length(grid, forward_branch)
+    ntau = length(grid, imaginary_branch)
+    new{T, norb}(grid, gtr, les, rm, mat, ntau, nt)
+  end
+end
+
+function FullTimeGF(::Type{T}, grid::TimeGrid, norb = 1) where T <: Number
+  nt = length(grid, forward_branch)
+  ntau = length(grid, imaginary_branch)
+
+  gtr = AntiHermitianStorage(T, nt, norb)
+  les = AntiHermitianStorage(T, nt, norb)
+  rm = GenericStorage(T, ntau, nt, norb)
+  mat = ImaginaryTimeStorage(T, ntau, norb)
+
+  FullTimeGF(grid, gtr, les, rm, mat)
+end
+FullTimeGF(grid::TimeGrid, norb = 1) = FullTimeGF(ComplexF64, grid, norb)
+
+function Base.getindex(G::FullTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
+  greater = t1 == t2 ? greater : heaviside(t1.val, t2.val)
+
+  i = t1.ridx
+  j = t2.ridx
+
+  if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
+      (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
+    return greater ? G.gtr[i,j] : G.les[i,j]
+  elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
+    return G.rm[i,j]
+  elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
+    return conj(G.rm[G.ntau+1-j,i]) # akoi 19c
+  else
+    i == j && !greater ? -G.mat[i,j] : G.mat[i,j]
+  end
+end
+
+function Base.setindex!(G::FullTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+  greater = heaviside(t1.val, t2.val)
+
+  i = t1.ridx
+  j = t2.ridx
+
+  if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
+      (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
+    return greater ? G.gtr[i,j] = v : G.les[i,j] = v
+  elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
+    return G.rm[i,j] = v
+  elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
+    return G.rm[ntau+1-j,i] = conj(v) #akoi 19c
+  else
+    G.mat[i,j] = v
+  end
+end
+
+function TimeDomain(G::FullTimeGF)
+  grid = G.grid
+  tplus = grid[forward_branch]
+  tminus = reverse(grid[backward_branch])
+  tau = grid[imaginary_branch]
+
+  nt = length(tplus)
+  ntau = length(tau)
+
+  points = Tuple{TimeGridPoint, TimeGridPoint}[]
+
+  for i in 1:nt
+    for j in 1:i
+      push!(points, (tminus[j], tminus[i])) # gtr
+      push!(points, (tplus[j], tminus[i])) # les
+    end
+  end
+
+  for i in 1:nt
+    for j in 1:ntau
+      push!(points, (tau[j], tminus[i])) # right mixing
+    end
+  end
+
+  for i in 1:ntau
+    push!(points, (tau[i], tau[1])) # matsubara
+  end
+
+  return TimeDomain(points)
+end
+
+function FullTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb = 1) where T <: Number
+  G = FullTimeGF(T, grid, norb)
+  D = TimeDomain(G)
+
+  for (t1, t2) in D.points
+    G[t1, t2] = f(t1, t2)
+  end
+
+  return G
 end

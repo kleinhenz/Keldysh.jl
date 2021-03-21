@@ -97,3 +97,7 @@ integrate(f, grid::TimeGrid) = integrate(f, grid, grid[end], grid[1])
 
 realtimes(grid::TimeGrid) = map(t -> real(t.val.val), grid[forward_branch])
 imagtimes(grid::TimeGrid) = map(t -> real(1.0im * t.val.val), grid[imaginary_branch]) # τ = it
+
+struct TimeDomain
+  points::Vector{Tuple{TimeGridPoint, TimeGridPoint}}
+end
