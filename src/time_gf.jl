@@ -300,3 +300,5 @@ function FullTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb = 1) where T <:
 
   return G
 end
+
+FullTimeGF(f::Function, grid::TimeGrid, norb = 1) = FullTimeGF(f, ComplexF64, grid, norb)
