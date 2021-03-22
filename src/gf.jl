@@ -53,3 +53,4 @@ end
 
 include("gf/generic.jl")
 include("gf/full.jl")
+include("gf/time_invariant_full.jl")

@@ -5,4 +5,5 @@ Base.eltype(X::AbstractStorage) = eltype(typeof(X))
 
 include("storage/generic.jl")
 include("storage/herm.jl")
+include("storage/time_invariant_herm.jl")
 include("storage/imag.jl")

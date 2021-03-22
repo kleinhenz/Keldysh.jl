@@ -8,7 +8,7 @@ function gf_1level(grid::TimeGrid; ϵ, β)
   end
 end
 
-function dos2gf(dos, t1::BranchPoint, t2::BranchPoint; β, integrator = dos_integrator)
+function dos2gf(dos, β, t1::BranchPoint, t2::BranchPoint; integrator = dos_integrator)
     theta = θ(t1, t2)
     Δt = t1.val - t2.val
     f = ω -> (ω > 0.0 ? exp(-1.0im * ω * (Δt - 1.0im * (1.0 - theta) * β)) / (exp(-β * ω) + 1) :
