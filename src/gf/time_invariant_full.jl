@@ -12,7 +12,7 @@ struct TimeInvariantFullTimeGF{T, scalar} <: AbstractTimeGF{T}
                       les::TimeInvariantAntiHermitianStorage{T,scalar},
                       rm::GenericStorage{T,scalar},
                       mat::ImaginaryTimeStorage{T,scalar}) where {T, scalar}
-
+    @assert grid.contour.domain == full_contour
     nt = length(grid, forward_branch)
     ntau = length(grid, imaginary_branch)
     new{T, scalar}(grid, gtr, les, rm, mat, ntau, nt)
@@ -113,13 +113,6 @@ end
 TimeInvariantFullTimeGF(f::Function, grid::TimeGrid, norb=1, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, scalar)
 
 function TimeInvariantFullTimeGF(dos::AbstractDOS, grid::TimeGrid)
-  t = realtimes(grid)
-  τ = imagtimes(grid)
-  β = τ[end]
-
-  nt = length(t)
-  ntau = length(τ)
-
   TimeInvariantFullTimeGF(grid, 1, true) do t1, t2
     dos2gf(dos, β, t1.val, t2.val)
   end
