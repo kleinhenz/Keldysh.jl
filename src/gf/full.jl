@@ -12,7 +12,7 @@ struct FullTimeGF{T, scalar} <: AbstractTimeGF{T}
                       les::AntiHermitianStorage{T,scalar},
                       rm::GenericStorage{T,scalar},
                       mat::ImaginaryTimeStorage{T,scalar}) where {T, scalar}
-
+    @assert grid.contour.domain == full_contour
     nt = length(grid, forward_branch)
     ntau = length(grid, imaginary_branch)
     new{T, scalar}(grid, gtr, les, rm, mat, ntau, nt)
