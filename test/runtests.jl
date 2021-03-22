@@ -97,11 +97,11 @@ end
   let tmax = 2.0, c = Contour(keldysh_contour, tmax=tmax)
     grid = TimeGrid(c, npts_real=51)
 
-    Δt1 = TimeGF(grid) do t1, t2
+    Δt1 = TimeGF(grid, 1, true) do t1, t2
       (t1.val.val - t2.val.val)
     end
 
-    Δt2 = TimeGF(grid) do t1, t2
+    Δt2 = TimeGF(grid, 1, true) do t1, t2
       integrate(t -> 1.0, grid, t1, t2)
     end
     @test Δt1.data ≈ Δt2.data
@@ -110,11 +110,11 @@ end
   let tmax = 2.0, c = twist(Contour(keldysh_contour, tmax=tmax))
     grid = TimeGrid(c, npts_real=51)
 
-    Δt1 = TimeGF(grid) do t1, t2
+    Δt1 = TimeGF(grid, 1, true) do t1, t2
       (t1.val.val - t2.val.val)
     end
 
-    Δt2 = TimeGF(grid) do t1, t2
+    Δt2 = TimeGF(grid, 1, true) do t1, t2
       integrate(t -> 1.0, grid, t1, t2)
     end
     @test Δt1.data ≈ Δt2.data
