@@ -3,7 +3,7 @@ function gf_1level(t1::BranchPoint, t2::BranchPoint; ϵ, β)
 end
 
 function gf_1level(grid::TimeGrid; ϵ, β)
-  TimeGF(grid, 1) do t1, t2
+  TimeGF(grid, 1, true) do t1, t2
     gf_1level(t1.val, t2.val; ϵ, β)
   end
 end
@@ -69,7 +69,7 @@ function _dos2gf_full_contour(dos, β, grid::TimeGrid)
   mat = [_dos2gf_mat(dos, τi, β) for τi in τ]
   mat = reshape(mat, 1, 1, ntau)
 
-  return TimeGF(les, ret, tv, mat, grid)
+  return TimeGF(les, ret, tv, mat, grid, true)
 end
 
 function _dos2gf_keldysh_contour(dos, β, grid::TimeGrid)
@@ -86,7 +86,7 @@ function _dos2gf_keldysh_contour(dos, β, grid::TimeGrid)
   ret = [i >= j ? ret_[i - j + 1] : -conj(ret_[j - i + 1]) for i in 1:length(t), j in 1:length(t)]
   ret = reshape(ret, 1, 1, nt, nt)
 
-  return TimeGF(les, ret, grid)
+  return TimeGF(les, ret, grid, true)
 end
 
 function dos2gf(dos, β, grid::TimeGrid)

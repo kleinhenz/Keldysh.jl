@@ -4,7 +4,7 @@ import Base.to_index
 
 using Keldysh, HDF5
 
-GREEN = TimeGF{ComplexF64, 1}
+GREEN = TimeGF{ComplexF64, true}
 
 parse_param(::Type{T}, s::AbstractString) where T = parse(T, s)
 parse_param(::Type{String}, s::AbstractString) = string(s)
@@ -104,11 +104,11 @@ struct nca_data
 
     grid = first(p0).grid
 
-    p = [TimeGF(grid) for _ in 1:statesize]
-    Σ = [TimeGF(grid) for _ in 1:statesize]
-    Σxp = [TimeGF(grid) for _ in 1:statesize]
-    pxΣ = [TimeGF(grid) for _ in 1:statesize]
-    G = [TimeGF(grid) for _ in 1:indexsize]
+    p = [TimeGF(grid,1,true) for _ in 1:statesize]
+    Σ = [TimeGF(grid,1,true) for _ in 1:statesize]
+    Σxp = [TimeGF(grid,1,true) for _ in 1:statesize]
+    pxΣ = [TimeGF(grid,1,true) for _ in 1:statesize]
+    G = [TimeGF(grid,1,true) for _ in 1:indexsize]
 
     new(p0, Δ, p, Σ, Σxp, pxΣ, G, grid, states, spins)
   end
@@ -226,7 +226,8 @@ function nca(p0, Δ, params::nca_params)
 end
 
 function _compute_bare_prop(grid, ρ_s, ϵ_s, ξ_s)
-  TimeGF(grid, lower=true) do t1, t2
+  TimeGF(grid, 1, true) do t1, t2
+    t1.idx < t2.idx && return 0.0
     ϕ = integrate(t -> ϵ_s(real(t.val.val)), grid, t1, t2)
     val = -1.0im * exp(-1.0im * ϕ)
     heaviside(t1.val, t2.val) || (val *= ξ_s * ρ_s)
