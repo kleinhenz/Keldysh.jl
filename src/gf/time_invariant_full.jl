@@ -113,6 +113,7 @@ end
 TimeInvariantFullTimeGF(f::Function, grid::TimeGrid, norb=1, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, scalar)
 
 function TimeInvariantFullTimeGF(dos::AbstractDOS, grid::TimeGrid)
+  β = length(grid.contour[imaginary_branch])
   TimeInvariantFullTimeGF(grid, 1, true) do t1, t2
     dos2gf(dos, β, t1.val, t2.val)
   end
