@@ -73,6 +73,8 @@ function get_branch(c::Contour, d::BranchEnum)
   return idx == -1 ? nothing : c.branches[idx]
 end
 
+Base.getindex(c::Contour, d::BranchEnum) = get_branch(c, d)
+
 """
 θ(t1, t2) = t1 >= t2 ? 1.0 : 0.0
 """
