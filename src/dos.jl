@@ -34,7 +34,7 @@ end
   Ω_p of D(ω). Each term S_p(ω) is regular everywhere on
   ω\\in[ω_{min};ω_{max}] except for its corresponding ω = Ω_p.
 """
-struct SingularDOS
+struct SingularDOS <: AbstractDOS
   # Support limits
   ωmin::Real
   ωmax::Real
