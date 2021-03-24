@@ -79,7 +79,7 @@ Base.getindex(c::Contour, d::BranchEnum) = get_branch(c, d)
 θ(t1, t2) = t1 >= t2 ? 1.0 : 0.0
 """
 function heaviside(c::Contour, t1::BranchPoint, t2::BranchPoint)
-  t1.domain == t2.domain ? t1.ref >= t2.ref : c.branch_indices[t1.domain] > c.branch_indices[t2.domain]
+  t1.domain == t2.domain ? t1.ref >= t2.ref : c.branch_indices[Int(t1.domain)] > c.branch_indices[Int(t2.domain)]
 end
 
 """
