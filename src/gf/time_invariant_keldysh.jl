@@ -3,27 +3,32 @@ struct TimeInvariantKeldyshTimeGF{T, scalar} <: AbstractTimeGF{T}
   gtr::TimeInvariantAntiHermitianStorage{T,scalar}
   les::TimeInvariantAntiHermitianStorage{T,scalar}
   nt::Int # TODO move to grid
+  ξ::Int
 
   function TimeInvariantKeldyshTimeGF(grid::TimeGrid,
                       gtr::TimeInvariantAntiHermitianStorage{T,scalar},
-                      les::TimeInvariantAntiHermitianStorage{T,scalar}) where {T, scalar}
+                      les::TimeInvariantAntiHermitianStorage{T,scalar},
+                      ξ=-1) where {T, scalar}
+
     @assert grid.contour.domain == keldysh_contour
+    @assert ξ == -1 || ξ == 1
+
     nt = length(grid, forward_branch)
-    new{T, scalar}(grid, gtr, les, nt)
+    new{T, scalar}(grid, gtr, les, nt, ξ)
   end
 end
 
 norbitals(G::TimeInvariantKeldyshTimeGF) = G.gtr.norb
 
-function TimeInvariantKeldyshTimeGF(::Type{T}, grid::TimeGrid, norb=1, scalar=false) where T <: Number
+function TimeInvariantKeldyshTimeGF(::Type{T}, grid::TimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
   nt = length(grid, forward_branch)
 
   gtr = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
   les = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
 
-  TimeInvariantKeldyshTimeGF(grid, gtr, les)
+  TimeInvariantKeldyshTimeGF(grid, gtr, les, ξ)
 end
-TimeInvariantKeldyshTimeGF(grid::TimeGrid, norb=1, scalar=false) = TimeInvariantKeldyshTimeGF(ComplexF64, grid, norb, scalar)
+TimeInvariantKeldyshTimeGF(grid::TimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantKeldyshTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
 function Base.getindex(G::TimeInvariantKeldyshTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   greater = t1 == t2 ? greater : heaviside(t1.val, t2.val)
@@ -60,8 +65,8 @@ function TimeDomain(G::TimeInvariantKeldyshTimeGF)
   return TimeDomain(points)
 end
 
-function TimeInvariantKeldyshTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb=1, scalar=false) where T <: Number
-  G = TimeInvariantKeldyshTimeGF(T, grid, norb, scalar)
+function TimeInvariantKeldyshTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
+  G = TimeInvariantKeldyshTimeGF(T, grid, norb, ξ, scalar)
   D = TimeDomain(G)
 
   for (t1, t2) in D.points
@@ -71,10 +76,10 @@ function TimeInvariantKeldyshTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb
   return G
 end
 
-TimeInvariantKeldyshTimeGF(f::Function, grid::TimeGrid, norb=1, scalar=false) = TimeInvariantKeldyshTimeGF(f, ComplexF64, grid, norb, scalar)
+TimeInvariantKeldyshTimeGF(f::Function, grid::TimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantKeldyshTimeGF(f, ComplexF64, grid, norb, ξ, scalar)
 
 function TimeInvariantKeldyshTimeGF(dos::AbstractDOS, β, grid::TimeGrid)
-  TimeInvariantKeldyshTimeGF(grid, 1, true) do t1, t2
+  TimeInvariantKeldyshTimeGF(grid, 1, -1, true) do t1, t2
     dos2gf(dos, β, t1.val, t2.val)
   end
 end

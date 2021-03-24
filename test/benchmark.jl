@@ -15,7 +15,7 @@ function setup_indexing_benchmark()
   dos = Keldysh.bethe_dos()
   G1 = dos2gf(dos, 5.0, grid);
 
-  G2 = Keldysh.FullTimeGF(grid,1,true) do t1,t2
+  G2 = Keldysh.FullTimeGF(grid,1,-1,true) do t1,t2
     G1[t1,t2]
   end
 
