@@ -50,9 +50,9 @@ end
 
 function Base.setindex!(X::AntiHermitianStorage{T,scalar}, v, i, j) where {T, scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
-  if i == j
-    @assert iszero(real(v))
-  end
+#  if i == j
+#    @assert iszero(real(v))
+#  end
   i < j && return X[j,i] = -conj(v)
   k = div((i-1)*i,2)
   k += j
