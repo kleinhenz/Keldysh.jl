@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 abstract type AbstractTimeGF{T} end
 #TODO decide on full interface that should be supported by subtypes
 

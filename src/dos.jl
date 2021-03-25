@@ -1,6 +1,3 @@
-using QuadGK
-using Elliptic
-
 abstract type AbstractDOS end
 
 struct DOS{F} <: AbstractDOS

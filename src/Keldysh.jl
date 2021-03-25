@@ -1,5 +1,8 @@
 module Keldysh
 
+using LinearAlgebra
+using HDF5, QuadGK, Elliptic
+
 # utility functions
 export fermi
 
