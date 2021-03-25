@@ -23,9 +23,9 @@ function Base.getindex(X::ImaginaryTimeStorage{T,scalar}, i, j) where {T,scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
 
   if scalar
-    return i >= j ? X.data[1,1,i-j+1] : -X.data[1,1,i-j+X.N]
+    return i >= j ? X.data[1,1,i-j+1] : X.data[1,1,i-j+X.N]
   else
-    return i >= j ? X.data[:,:,i-j+1] : -X.data[:,:,i-j+X.N]
+    return i >= j ? X.data[:,:,i-j+1] : X.data[:,:,i-j+X.N]
   end
 end
 
@@ -36,13 +36,13 @@ function Base.setindex!(X::ImaginaryTimeStorage{T,scalar}, v, i, j) where {T,sca
     if i >= j
       return X.data[1,1,i-j+1] = v
     else
-      return X.data[1,1,i-j+X.N] = -v
+      return X.data[1,1,i-j+X.N] = v
     end
   else
     if i >= j
       return X.data[:,:,i-j+1] = v
     else
-      return X.data[:,:,i-j+X.N] = -v
+      return X.data[:,:,i-j+X.N] = v
     end
   end
 end
