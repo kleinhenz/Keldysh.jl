@@ -44,6 +44,7 @@ function Base.getindex(G::TimeInvariantFullTimeGF, t1::TimeGridPoint, t2::TimeGr
 
   i = t1.ridx
   j = t2.ridx
+  ξ = G.ξ
 
   if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
       (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
@@ -51,9 +52,9 @@ function Base.getindex(G::TimeInvariantFullTimeGF, t1::TimeGridPoint, t2::TimeGr
   elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
     return G.rm[i,j]
   elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
-    return conj(G.rm[G.ntau+1-j,i]) # akoi 19c
+    return -ξ * conj(G.rm[G.ntau+1-j,i]) # akoi 19c
   else
-    i == j && !greater ? -G.mat[i,j] : G.mat[i,j]
+    greater ? G.mat[i,j] : ξ * G.mat[i,j]
   end
 end
 
@@ -62,6 +63,7 @@ function Base.setindex!(G::TimeInvariantFullTimeGF, v, t1::TimeGridPoint, t2::Ti
 
   i = t1.ridx
   j = t2.ridx
+  ξ = G.ξ
 
   if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
       (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
@@ -69,9 +71,13 @@ function Base.setindex!(G::TimeInvariantFullTimeGF, v, t1::TimeGridPoint, t2::Ti
   elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
     return G.rm[i,j] = v
   elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
-    return G.rm[ntau+1-j,i] = conj(v) #akoi 19c
+    return G.rm[ntau+1-j,i] = -ξ * conj(v) #akoi 19c
   else
-    G.mat[i,j] = v
+    if greater
+      G.mat[i,j] = v
+    else
+      G.mat[i,j] = ξ * v
+    end
   end
 end
 
