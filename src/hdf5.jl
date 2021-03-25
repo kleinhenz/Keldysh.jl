@@ -1,5 +1,3 @@
-using HDF5
-
 struct ALPSComplex end
 
 function Base.read(g::HDF5.Dataset, ::Type{ALPSComplex})
