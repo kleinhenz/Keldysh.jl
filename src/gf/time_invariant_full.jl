@@ -1,34 +1,31 @@
 struct TimeInvariantFullTimeGF{T, scalar} <: AbstractTimeGF{T}
-  grid::TimeGrid
+  grid::FullTimeGrid
   gtr::TimeInvariantAntiHermitianStorage{T,scalar}
   les::TimeInvariantAntiHermitianStorage{T,scalar}
   rm::GenericStorage{T,scalar}
   mat::ImaginaryTimeStorage{T,scalar}
-  ntau::Int # TODO move to grid
-  nt::Int # TODO move to grid
   ξ::Int
 
-  function TimeInvariantFullTimeGF(grid::TimeGrid,
+  function TimeInvariantFullTimeGF(grid::FullTimeGrid,
                       gtr::TimeInvariantAntiHermitianStorage{T,scalar},
                       les::TimeInvariantAntiHermitianStorage{T,scalar},
                       rm::GenericStorage{T,scalar},
                       mat::ImaginaryTimeStorage{T,scalar},
                       ξ=-1) where {T, scalar}
 
-    @assert grid.contour.domain == full_contour
     @assert ξ == -1 || ξ == 1
 
     nt = length(grid, forward_branch)
     ntau = length(grid, imaginary_branch)
-    new{T, scalar}(grid, gtr, les, rm, mat, ntau, nt, ξ)
+    new{T, scalar}(grid, gtr, les, rm, mat, ξ)
   end
 end
 
 norbitals(G::TimeInvariantFullTimeGF) = G.gtr.norb
 
-function TimeInvariantFullTimeGF(::Type{T}, grid::TimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
-  nt = length(grid, forward_branch)
-  ntau = length(grid, imaginary_branch)
+function TimeInvariantFullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
+  nt = grid.nt
+  ntau = grid.ntau
 
   gtr = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
   les = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
@@ -37,7 +34,7 @@ function TimeInvariantFullTimeGF(::Type{T}, grid::TimeGrid, norb=1, ξ=-1, scala
 
   TimeInvariantFullTimeGF(grid, gtr, les, rm, mat, ξ)
 end
-TimeInvariantFullTimeGF(grid::TimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantFullTimeGF(ComplexF64, grid, norb, ξ, scalar)
+TimeInvariantFullTimeGF(grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantFullTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
 function Base.getindex(G::TimeInvariantFullTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   greater = t1 == t2 ? greater : heaviside(t1.val, t2.val)
@@ -110,7 +107,7 @@ function TimeDomain(G::TimeInvariantFullTimeGF)
   return TimeDomain(points)
 end
 
-function TimeInvariantFullTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
+function TimeInvariantFullTimeGF(f::Function, ::Type{T}, grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
   G = TimeInvariantFullTimeGF(T, grid, norb, ξ, scalar)
   D = TimeDomain(G)
 
@@ -121,9 +118,9 @@ function TimeInvariantFullTimeGF(f::Function, ::Type{T}, grid::TimeGrid, norb=1,
   return G
 end
 
-TimeInvariantFullTimeGF(f::Function, grid::TimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, ξ, scalar)
+TimeInvariantFullTimeGF(f::Function, grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, ξ, scalar)
 
-function TimeInvariantFullTimeGF(dos::AbstractDOS, grid::TimeGrid)
+function TimeInvariantFullTimeGF(dos::AbstractDOS, grid::FullTimeGrid)
   β = length(grid.contour[imaginary_branch])
   TimeInvariantFullTimeGF(grid, 1, -1, true) do t1, t2
     dos2gf(dos, β, t1.val, t2.val)
