@@ -1,6 +1,8 @@
 abstract type AbstractTimeGF{T} end
 #TODO decide on full interface that should be supported by subtypes
 
+@enum GFSignEnum fermionic=-1 bosonic=1
+
 Base.eltype(::Type{<:AbstractTimeGF{T}}) where {T} = T
 Base.eltype(X::AbstractTimeGF) = eltype(typeof(X))
 
@@ -52,5 +54,5 @@ end
 include("gf/generic.jl")
 include("gf/full.jl")
 include("gf/time_invariant_full.jl")
-#include("gf/keldysh.jl")
-#include("gf/time_invariant_keldysh.jl")
+include("gf/keldysh.jl")
+include("gf/time_invariant_keldysh.jl")

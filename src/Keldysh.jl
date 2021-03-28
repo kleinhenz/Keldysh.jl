@@ -16,7 +16,7 @@ export AbstractContour, FullContour, KeldyshContour, ImaginaryContour, twist, he
 export AbstractTimeGrid, FullTimeGrid, KeldyshTimeGrid, ImaginaryTimeGrid, TimeDomain, integrate, realtimes, imagetimes
 
 # TimeGF functions
-export AbstractTimeGF, GenericTimeGF, FullTimeGF
+export fermionic, bosonic, AbstractTimeGF, GenericTimeGF, FullTimeGF, TimeInvariantFullTimeGF, KeldyshTimeGF, TimeInvariantKeldyshTimeGF
 #
 ## DOS functions
 export dos_integrator, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
@@ -31,8 +31,8 @@ include("contour.jl")
 include("time_grid.jl")
 include("storage.jl")
 include("gf.jl")
+include("generate_gf.jl")
 #include("observables.jl")
-#include("generate_gf.jl")
 #include("hdf5.jl")
 #include("nessi.jl")
 
