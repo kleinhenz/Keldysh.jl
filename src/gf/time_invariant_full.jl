@@ -4,26 +4,21 @@ struct TimeInvariantFullTimeGF{T, scalar} <: AbstractTimeGF{T}
   les::TimeInvariantAntiHermitianStorage{T,scalar}
   rm::GenericStorage{T,scalar}
   mat::ImaginaryTimeStorage{T,scalar}
-  ξ::Int
+  ξ::GFSignEnum
 
   function TimeInvariantFullTimeGF(grid::FullTimeGrid,
                       gtr::TimeInvariantAntiHermitianStorage{T,scalar},
                       les::TimeInvariantAntiHermitianStorage{T,scalar},
                       rm::GenericStorage{T,scalar},
                       mat::ImaginaryTimeStorage{T,scalar},
-                      ξ=-1) where {T, scalar}
-
-    @assert ξ == -1 || ξ == 1
-
-    nt = length(grid, forward_branch)
-    ntau = length(grid, imaginary_branch)
+                      ξ::GFSignEnum=fermionic) where {T, scalar}
     new{T, scalar}(grid, gtr, les, rm, mat, ξ)
   end
 end
 
 norbitals(G::TimeInvariantFullTimeGF) = G.gtr.norb
 
-function TimeInvariantFullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
+function TimeInvariantFullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) where T <: Number
   nt = grid.nt
   ntau = grid.ntau
 
@@ -34,14 +29,14 @@ function TimeInvariantFullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ=-1, s
 
   TimeInvariantFullTimeGF(grid, gtr, les, rm, mat, ξ)
 end
-TimeInvariantFullTimeGF(grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantFullTimeGF(ComplexF64, grid, norb, ξ, scalar)
+TimeInvariantFullTimeGF(grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = TimeInvariantFullTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
 function Base.getindex(G::TimeInvariantFullTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   greater = t1 == t2 ? greater : heaviside(t1.val, t2.val)
 
   i = t1.ridx
   j = t2.ridx
-  ξ = G.ξ
+  ξ = Int(G.ξ)
 
   if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
       (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
@@ -49,7 +44,8 @@ function Base.getindex(G::TimeInvariantFullTimeGF, t1::TimeGridPoint, t2::TimeGr
   elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
     return G.rm[i,j]
   elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
-    return -ξ * conj(G.rm[G.ntau+1-j,i]) # akoi 19c
+    ntau = G.grid.ntau
+    return -ξ * conj(G.rm[ntau+1-j,i]) # akoi 19c
   else
     greater ? G.mat[i,j] : ξ * G.mat[i,j]
   end
@@ -60,7 +56,7 @@ function Base.setindex!(G::TimeInvariantFullTimeGF, v, t1::TimeGridPoint, t2::Ti
 
   i = t1.ridx
   j = t2.ridx
-  ξ = G.ξ
+  ξ = Int(G.ξ)
 
   if ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) &&
       (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
@@ -68,6 +64,7 @@ function Base.setindex!(G::TimeInvariantFullTimeGF, v, t1::TimeGridPoint, t2::Ti
   elseif (t1.val.domain == imaginary_branch && (t2.val.domain == forward_branch || t2.val.domain == backward_branch))
     return G.rm[i,j] = v
   elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
+    ntau = G.grid.ntau
     return G.rm[ntau+1-j,i] = -ξ * conj(v) #akoi 19c
   else
     if greater
@@ -107,7 +104,7 @@ function TimeDomain(G::TimeInvariantFullTimeGF)
   return TimeDomain(points)
 end
 
-function TimeInvariantFullTimeGF(f::Function, ::Type{T}, grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) where T <: Number
+function TimeInvariantFullTimeGF(f::Function, ::Type{T}, grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) where T <: Number
   G = TimeInvariantFullTimeGF(T, grid, norb, ξ, scalar)
   D = TimeDomain(G)
 
@@ -118,11 +115,11 @@ function TimeInvariantFullTimeGF(f::Function, ::Type{T}, grid::FullTimeGrid, nor
   return G
 end
 
-TimeInvariantFullTimeGF(f::Function, grid::FullTimeGrid, norb=1, ξ=-1, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, ξ, scalar)
+TimeInvariantFullTimeGF(f::Function, grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, ξ, scalar)
 
 function TimeInvariantFullTimeGF(dos::AbstractDOS, grid::FullTimeGrid)
   β = length(grid.contour[imaginary_branch])
-  TimeInvariantFullTimeGF(grid, 1, -1, true) do t1, t2
-    dos2gf(dos, β, t1.val, t2.val)
+  TimeInvariantFullTimeGF(grid, 1, fermionic, true) do t1, t2
+    Keldysh.dos2gf(dos, β, t1.val, t2.val)
   end
 end
