@@ -1,9 +1,9 @@
-struct GenericTimeGF{T, U <: AbstractTimeGrid, scalar} <: AbstractTimeGF{T}
+struct GenericTimeGF{T, scalar, U <: AbstractTimeGrid} <: AbstractTimeGF{T}
   grid::U
   data::GenericStorage{T, scalar}
 
   function GenericTimeGF(grid::U, data::GenericStorage{T,scalar}) where {T, U <: AbstractTimeGrid, scalar}
-    return new{T,U,scalar}(grid, data)
+    return new{T,scalar, U}(grid, data)
   end
 end
 norbitals(G::GenericTimeGF) = G.data.norb
