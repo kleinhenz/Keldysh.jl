@@ -28,7 +28,7 @@ function GenericTimeGF(f::Function, ::Type{T}, grid::AbstractTimeGrid, norb=1, s
 end
 GenericTimeGF(f::Function, grid::AbstractTimeGrid, norb=1, scalar=false) = GenericTimeGF(f, ComplexF64, grid, norb, scalar)
 
-function Base.getindex(G::GenericTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
+@inline function Base.getindex(G::GenericTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   val = G.data[t1.idx, t2.idx]
   (!greater && t1.idx == t2.idx) && (val += jump(G))
   return val
