@@ -7,28 +7,29 @@ suite = BenchmarkGroup()
 function setup_indexing_benchmark()
   suite["indexing"] = BenchmarkGroup()
 
-
-  c = Contour(full_contour, tmax=2.0, β=5.0)
-  grid = TimeGrid(c, npts_real=41, npts_imag=101)
+  c = FullContour(tmax=2.0, β=5.0)
+  grid = FullTimeGrid(c, 41, 101)
   N = length(grid)
 
-  dos = Keldysh.bethe_dos()
-  G1 = dos2gf(dos, 5.0, grid);
+  X = zeros(1,1,N,N)
+  Y = Keldysh.GenericStorage(N,N,1,true)
 
-  G2 = Keldysh.FullTimeGF(grid,1,-1,true) do t1,t2
-    G1[t1,t2]
-  end
+  G1 = GenericTimeGF(grid, 1, true)
+  G2 = FullTimeGF(grid, 1, fermionic, true)
 
-  b = @benchmarkable $G1.data[1,1,i,j] setup=(i=rand(1:$N); j=rand(1:$N)) evals=1 samples=1000000
-  suite["indexing"]["TimeGF_raw"] = b
+  b = @benchmarkable $X[1,1,i,j] setup=(i=rand(1:$N); j=rand(1:$N))
+  suite["indexing"]["Array"] = b
 
-  # set evals=1 so we are benchmarking random accesses rather than repeated accesses to the same element
-  b = @benchmarkable $G1[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)]) evals=1 samples=1000000
-  suite["indexing"]["TimeGF_TimeGridPoint"] = b
+  b = @benchmarkable $Y[i,j] setup=(i=rand(1:$N); j=rand(1:$N))
+  suite["indexing"]["GenericStorage"] = b
 
-  # set evals=1 so we are benchmarking random accesses rather than repeated accesses to the same element
-  b = @benchmarkable $G2[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)]) evals=1 samples=1000000
-  suite["indexing"]["FullTimeGF_TimeGridPoint"] = b
+  b = @benchmarkable $G1[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)])
+  suite["indexing"]["GenericTimeGF"] = b
+
+  b = @benchmarkable $G2[t1,t2] setup=(t1=$grid[rand(1:$N)]; t2=$grid[rand(1:$N)])
+  suite["indexing"]["FullTimeGF"] = b
+
+  tune!(suite["indexing"])
 end
 
 function main()
