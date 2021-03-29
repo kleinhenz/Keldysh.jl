@@ -17,6 +17,22 @@
     G3 = TimeInvariantFullTimeGF(f, grid, 1, fermionic, true)
 
     @test all(map(((t1, t2),) -> isapprox(G1[t1,t2], G3[t1,t2], atol=1e-10), Iterators.product(grid, grid)))
+
+    # test interpolation on linear function
+    lin_f = (t1, t2) -> (2.0 * t1.val - im * t2.val) + 5.0 * heaviside(t1, t2)
+    for t1 in grid
+      for t2 in grid
+        G1[t1, t2] = lin_f(t1.val, t2.val)
+      end
+    end
+
+    grid_fine = FullTimeGrid(c, 41, 101)
+    for t1 in grid_fine
+      for t2 in grid_fine
+        @test isapprox(G1(t1.val, t2.val), lin_f(t1.val, t2.val), atol=1e-10)
+      end
+    end
+
   end
 
   let c = KeldyshContour(tmax=2.0), nt = 21
