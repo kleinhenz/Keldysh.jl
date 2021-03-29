@@ -237,5 +237,4 @@ function (G::GenericTimeGF{T, false})(t1::BranchPoint, t2::BranchPoint) where T
   norb = norbitals(G)
   x = zeros(T, norb, norb)
   return interpolate!(x, G, t1, t2)
-  return x
 end

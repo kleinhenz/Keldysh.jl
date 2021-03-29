@@ -28,7 +28,8 @@
 
         @test heaviside(c, t, tl.val)
         @test heaviside(c, tu.val, t)
-
+        @test heaviside(c, t, grid[1].val)
+        @test heaviside(c, grid[end].val, t)
       end
     end
   end
