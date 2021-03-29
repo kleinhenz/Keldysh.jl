@@ -33,6 +33,23 @@ nbranches(::Type{KeldyshContour}) = 2
 nbranches(::Type{ImaginaryContour}) = 1
 nbranches(c::AbstractContour) = nbranches(typeof(c))
 
+Base.length(c::ImaginaryContour) = c.β
+Base.length(c::KeldyshContour) = 2*c.tmax
+Base.length(c::FullContour) = 2*c.tmax + c.β
+
+function get_point(c::AbstractContour, ref)
+  @assert ref >= 0.0 && ref <= length(c)
+
+  for b in c.branches
+    lb = length(b)
+    if ref <= lb
+      return b(ref / lb)
+    else
+      ref -= lb
+    end
+  end
+end
+
 function twist(c::FullContour)
   n = nbranches(c)
   FullContour(ntuple(i -> c.branches[mod1(i+1,n)], n), c.tmax, c.β)
