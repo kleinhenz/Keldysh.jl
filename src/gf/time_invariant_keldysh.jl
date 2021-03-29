@@ -1,12 +1,12 @@
 struct TimeInvariantKeldyshTimeGF{T, scalar} <: AbstractTimeGF{T}
   grid::KeldyshTimeGrid
-  gtr::TimeInvariantAntiHermitianStorage{T,scalar}
-  les::TimeInvariantAntiHermitianStorage{T,scalar}
+  gtr::AntiHermitianToeplitzStorage{T,scalar}
+  les::AntiHermitianToeplitzStorage{T,scalar}
   ξ::GFSignEnum
 
   function TimeInvariantKeldyshTimeGF(grid::KeldyshTimeGrid,
-                      gtr::TimeInvariantAntiHermitianStorage{T,scalar},
-                      les::TimeInvariantAntiHermitianStorage{T,scalar},
+                      gtr::AntiHermitianToeplitzStorage{T,scalar},
+                      les::AntiHermitianToeplitzStorage{T,scalar},
                       ξ::GFSignEnum=fermionic) where {T, scalar}
     new{T, scalar}(grid, gtr, les, ξ)
   end
@@ -17,8 +17,8 @@ norbitals(G::TimeInvariantKeldyshTimeGF) = G.gtr.norb
 function TimeInvariantKeldyshTimeGF(::Type{T}, grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) where T <: Number
   nt = grid.nt
 
-  gtr = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
-  les = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
+  gtr = AntiHermitianToeplitzStorage(T, nt, norb, scalar)
+  les = AntiHermitianToeplitzStorage(T, nt, norb, scalar)
 
   TimeInvariantKeldyshTimeGF(grid, gtr, les, ξ)
 end
