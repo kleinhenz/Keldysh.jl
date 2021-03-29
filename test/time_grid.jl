@@ -18,6 +18,19 @@
     @test step(grid, imaginary_branch) == -0.1im
 
     @test integrate(t -> 1, grid) ≈ -1.0im * c.β
+
+    for b in c.branches
+      for t in b.(range(0.0, 1.0, length=101))
+        tl = Keldysh.find_lower(grid, t)
+        @test tl.val.domain == t.domain
+        @test tl.idx != length(grid)
+        tu = grid[tl.idx + 1]
+
+        @test heaviside(c, t, tl.val)
+        @test heaviside(c, tu.val, t)
+
+      end
+    end
   end
 
   let c = KeldyshContour(tmax=2.0), nt = 21, ntau=51

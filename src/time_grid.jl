@@ -141,3 +141,16 @@ imagtimes(grid::ImaginaryTimeGrid) = range(0.0, grid.contour.β, grid.ntau)
 struct TimeDomain
   points::Vector{Tuple{TimeGridPoint, TimeGridPoint}}
 end
+
+function find_lower(grid::AbstractTimeGrid, t::BranchPoint)
+  bounds = branch_bounds(grid, t.domain)
+  if t.ref == 1.0 # don't hit the bound
+    idx = bounds.second.idx - 1
+  else
+    npts = t.domain == imaginary_branch ? grid.ntau : grid.nt
+    step = 1 / (npts - 1)
+    delta = Int(floor(t.ref / step))
+    idx = bounds.first.idx + Int(floor(t.ref / step))
+  end
+  return grid[idx]
+end
