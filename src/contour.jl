@@ -67,7 +67,8 @@ function heaviside(c::AbstractContour, t1::BranchPoint, t2::BranchPoint)
   if t1.domain == t2.domain
     return t1.ref >= t2.ref
   else
-    return findfirst(b -> b.domain == t1.domain) > findfirst(b -> b.domain == t2.domain)
+    return findfirst(b -> b.domain == t1.domain, c.branches) > 
+           findfirst(b -> b.domain == t2.domain, c.branches)
   end
 end
 
