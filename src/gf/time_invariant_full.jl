@@ -1,16 +1,16 @@
 struct TimeInvariantFullTimeGF{T, scalar} <: AbstractTimeGF{T}
   grid::FullTimeGrid
-  gtr::TimeInvariantAntiHermitianStorage{T,scalar}
-  les::TimeInvariantAntiHermitianStorage{T,scalar}
+  gtr::AntiHermitianToeplitzStorage{T,scalar}
+  les::AntiHermitianToeplitzStorage{T,scalar}
   rm::GenericStorage{T,scalar}
-  mat::PeriodicStorage{T,scalar}
+  mat::CirculantStorage{T,scalar}
   ξ::GFSignEnum
 
   function TimeInvariantFullTimeGF(grid::FullTimeGrid,
-                      gtr::TimeInvariantAntiHermitianStorage{T,scalar},
-                      les::TimeInvariantAntiHermitianStorage{T,scalar},
+                      gtr::AntiHermitianToeplitzStorage{T,scalar},
+                      les::AntiHermitianToeplitzStorage{T,scalar},
                       rm::GenericStorage{T,scalar},
-                      mat::PeriodicStorage{T,scalar},
+                      mat::CirculantStorage{T,scalar},
                       ξ::GFSignEnum=fermionic) where {T, scalar}
     new{T, scalar}(grid, gtr, les, rm, mat, ξ)
   end
@@ -22,10 +22,10 @@ function TimeInvariantFullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ::GFSi
   nt = grid.nt
   ntau = grid.ntau
 
-  gtr = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
-  les = TimeInvariantAntiHermitianStorage(T, nt, norb, scalar)
+  gtr = AntiHermitianToeplitzStorage(T, nt, norb, scalar)
+  les = AntiHermitianToeplitzStorage(T, nt, norb, scalar)
   rm = GenericStorage(T, ntau, nt, norb, scalar)
-  mat = PeriodicStorage(T, ntau, norb, scalar)
+  mat = CirculantStorage(T, ntau, norb, scalar)
 
   TimeInvariantFullTimeGF(grid, gtr, les, rm, mat, ξ)
 end
