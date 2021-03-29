@@ -32,8 +32,24 @@ function setup_indexing_benchmark()
   tune!(suite["indexing"])
 end
 
+function setup_interp_benchmark()
+  suite["interp"] = BenchmarkGroup()
+
+  c = FullContour(tmax=2.0, β=5.0)
+  l = length(c)
+  grid = FullTimeGrid(c, 41, 101)
+
+  G1 = GenericTimeGF(grid, 1, true)
+
+  b = @benchmarkable $G1(t1,t2) setup=(t1=Keldysh.get_point($c, $l*rand()); t2=Keldysh.get_point($c, $l*rand()))
+  suite["interp"]["GenericTimeGF"] = b
+
+  tune!(suite["interp"])
+end
+
 function main()
   setup_indexing_benchmark()
+  setup_interp_benchmark()
 
   compare = false
   if length(ARGS) > 0
