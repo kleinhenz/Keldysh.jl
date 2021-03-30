@@ -19,13 +19,15 @@ end
 
 CirculantStorage(N::Integer, norb=1, scalar=false) = CirculantStorage(ComplexF64, N, norb, scalar)
 
-function Base.getindex(X::CirculantStorage{T,scalar}, i, j) where {T,scalar}
+function Base.getindex(X::CirculantStorage{T,scalar}, i, j, greater=true) where {T,scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
 
+  greater = i == j ? greater : i > j
+
   if scalar
-    return i >= j ? X.data[1,1,i-j+1] : X.data[1,1,i-j+X.N]
+    return greater ? X.data[1,1,i-j+1] : X.data[1,1,i-j+X.N]
   else
-    return i >= j ? X.data[:,:,i-j+1] : X.data[:,:,i-j+X.N]
+    return greater ? X.data[:,:,i-j+1] : X.data[:,:,i-j+X.N]
   end
 end
 
