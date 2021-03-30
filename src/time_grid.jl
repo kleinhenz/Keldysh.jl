@@ -132,11 +132,11 @@ end
 
 integrate(f, grid::AbstractTimeGrid, init=0.0im) = integrate(f, grid, grid[end], grid[1], init)
 
-realtimes(grid::FullTimeGrid) = range(0.0, grid.contour.tmax, grid.nt)
-realtimes(grid::KeldyshTimeGrid) = range(0.0, grid.contour.tmax, grid.nt)
+realtimes(grid::FullTimeGrid) = range(0.0, grid.contour.tmax, length=grid.nt)
+realtimes(grid::KeldyshTimeGrid) = range(0.0, grid.contour.tmax, length=grid.nt)
 
-imagtimes(grid::FullTimeGrid) = range(0.0, grid.contour.β, grid.ntau)
-imagtimes(grid::ImaginaryTimeGrid) = range(0.0, grid.contour.β, grid.ntau)
+imagtimes(grid::FullTimeGrid) = range(0.0, grid.contour.β, length=grid.ntau)
+imagtimes(grid::ImaginaryTimeGrid) = range(0.0, grid.contour.β, length=grid.ntau)
 
 struct TimeDomain
   points::Vector{Tuple{TimeGridPoint, TimeGridPoint}}
