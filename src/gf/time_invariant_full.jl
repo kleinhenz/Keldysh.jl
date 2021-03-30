@@ -118,7 +118,7 @@ end
 TimeInvariantFullTimeGF(f::Function, grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = TimeInvariantFullTimeGF(f, ComplexF64, grid, norb, ξ, scalar)
 
 function TimeInvariantFullTimeGF(dos::AbstractDOS, grid::FullTimeGrid)
-  β = length(grid.contour[imaginary_branch])
+  β = grid.contour.β
   TimeInvariantFullTimeGF(grid, 1, fermionic, true) do t1, t2
     Keldysh.dos2gf(dos, β, t1.val, t2.val)
   end
