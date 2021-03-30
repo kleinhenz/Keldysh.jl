@@ -1,4 +1,4 @@
-struct ImaginaryTimeGF{T, scalar} <: AbstractTimeGF{T}
+struct ImaginaryTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   grid::ImaginaryTimeGrid
   mat::CirculantStorage{T,scalar}
   ξ::GFSignEnum

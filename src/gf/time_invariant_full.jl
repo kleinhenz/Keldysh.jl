@@ -1,4 +1,4 @@
-struct TimeInvariantFullTimeGF{T, scalar} <: AbstractTimeGF{T}
+struct TimeInvariantFullTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   grid::FullTimeGrid
   gtr::AntiHermitianToeplitzStorage{T,scalar}
   les::AntiHermitianToeplitzStorage{T,scalar}
