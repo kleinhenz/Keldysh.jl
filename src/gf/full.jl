@@ -47,7 +47,7 @@ FullTimeGF(grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) =
     ntau = G.grid.ntau
     return -ξ * conj(G.rm[ntau+1-j,i]) # Aoki 19c
   else
-    greater ? G.mat[i,j] : ξ * G.mat[i,j]
+    return greater ? G.mat[i,j, greater] : ξ * G.mat[i,j, greater]
   end
 end
 
@@ -68,9 +68,9 @@ function Base.setindex!(G::FullTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
     return G.rm[ntau+1-j,i] = -ξ * conj(v) # Aoki 19c
   else
     if greater
-      G.mat[i,j] = v
+      return G.mat[i,j] = v
     else
-      G.mat[i,j] = ξ * v
+      return G.mat[i,j] = ξ * v
     end
   end
 end
