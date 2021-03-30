@@ -1,4 +1,4 @@
-struct TimeInvariantKeldyshTimeGF{T, scalar} <: AbstractTimeGF{T}
+struct TimeInvariantKeldyshTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   grid::KeldyshTimeGrid
   gtr::AntiHermitianToeplitzStorage{T,scalar}
   les::AntiHermitianToeplitzStorage{T,scalar}

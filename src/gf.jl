@@ -1,9 +1,9 @@
-abstract type AbstractTimeGF{T} end
+abstract type AbstractTimeGF{T, scalar} end
 #TODO decide on full interface that should be supported by subtypes
 
 @enum GFSignEnum fermionic=-1 bosonic=1
 
-Base.eltype(::Type{<:AbstractTimeGF{T}}) where {T} = T
+Base.eltype(::Type{<:AbstractTimeGF{T, scalar}}) where {T, scalar} = T
 Base.eltype(X::AbstractTimeGF) = eltype(typeof(X))
 
 function Base.getindex(G::AbstractTimeGF, b1::BranchEnum, b2::BranchEnum)
@@ -49,6 +49,136 @@ function Base.getindex(G::AbstractTimeGF, component::Symbol)
   else
     throw(ArgumentError("component $component not recognized"))
   end
+end
+
+function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+  grid = G.grid
+
+  t1_l = find_lower(grid, t1)
+  t1_r = grid[t1_l.idx + 1]
+
+  t2_l = find_lower(grid, t2)
+  t2_r = grid[t2_l.idx + 1]
+
+  has_cut = t1.domain == t2.domain
+  greater = heaviside(t1, t2)
+
+  do_triangular_interp = has_cut && (t1_l.idx == t2_l.idx && t1_r.idx == t2_r.idx)
+
+  if t1 == t2
+    return _line_interp(t1.val,
+                        t1_l.val.val,
+                        t1_r.val.val,
+                        G[t1_l, t1_l, greater],
+                        G[t1_r, t1_r, greater])
+  end
+
+  if !do_triangular_interp
+    return _square_interp(t1.val,
+                          t1_l.val.val,
+                          t1_r.val.val,
+                          t2.val,
+                          t2_l.val.val,
+                          t2_r.val.val,
+                          G[t1_l, t2_l, greater],
+                          G[t1_l, t2_r, greater],
+                          G[t1_r, t2_l, greater],
+                          G[t1_r, t2_r, greater])
+  else
+    if greater # t1 >= t2
+      return _tri_interp(t1.val,
+                         t1_l.val.val,
+                         t1_r.val.val,
+                         t2.val,
+                         t2_l.val.val,
+                         t2_r.val.val,
+                         G[t1_l, t2_l, greater],
+                         G[t1_r, t2_l, greater],
+                         G[t1_r, t2_r, greater])
+    else
+      return _tri_interp(t2.val,
+                         t2_l.val.val,
+                         t2_r.val.val,
+                         t1.val,
+                         t1_l.val.val,
+                         t1_r.val.val,
+                         G[t1_l, t2_l, greater],
+                         G[t1_l, t2_r, greater],
+                         G[t1_r, t2_r, greater])
+    end
+  end
+end
+
+function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+  grid = G.grid
+
+  t1_l = find_lower(grid, t1)
+  t1_r = grid[t1_l.idx + 1]
+
+  t2_l = find_lower(grid, t2)
+  t2_r = grid[t2_l.idx + 1]
+
+  has_cut = t1.domain == t2.domain
+  greater = heaviside(t1, t2)
+
+  do_triangular_interp = has_cut && (t1_l.idx == t2_l.idx && t1_r.idx == t2_r.idx)
+
+  if t1 == t2
+    return _line_interp!(x,
+                        t1.val,
+                        t1_l.val.val,
+                        t1_r.val.val,
+                        G[t1_l, t1_l, greater],
+                        G[t1_r, t1_r, greater])
+  end
+
+  if !do_triangular_interp
+    return _square_interp!(x,
+                          t1.val,
+                          t1_l.val.val,
+                          t1_r.val.val,
+                          t2.val,
+                          t2_l.val.val,
+                          t2_r.val.val,
+                          G[t1_l, t2_l, greater],
+                          G[t1_l, t2_r, greater],
+                          G[t1_r, t2_l, greater],
+                          G[t1_r, t2_r, greater])
+  else
+    if greater # t1 >= t2
+      return _tri_interp!(x,
+                         t1.val,
+                         t1_l.val.val,
+                         t1_r.val.val,
+                         t2.val,
+                         t2_l.val.val,
+                         t2_r.val.val,
+                         G[t1_l, t2_l, greater],
+                         G[t1_r, t2_l, greater],
+                         G[t1_r, t2_r, greater])
+    else
+      return _tri_interp!(x,
+                         t2.val,
+                         t2_l.val.val,
+                         t2_r.val.val,
+                         t1.val,
+                         t1_l.val.val,
+                         t1_r.val.val,
+                         G[t1_l, t2_l, greater],
+                         G[t1_l, t2_r, greater],
+                         G[t1_r, t2_r, greater])
+    end
+  end
+end
+
+function (G::AbstractTimeGF{T, true})(t1::BranchPoint, t2::BranchPoint) where T
+  return interpolate(G, t1, t2)
+end
+
+function (G::AbstractTimeGF{T, false})(t1::BranchPoint, t2::BranchPoint) where T
+  norb = norbitals(G)
+  x = zeros(T, norb, norb)
+  return interpolate!(x, G, t1, t2)
 end
 
 include("gf/generic.jl")

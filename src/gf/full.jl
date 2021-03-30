@@ -1,4 +1,4 @@
-struct FullTimeGF{T, scalar} <: AbstractTimeGF{T}
+struct FullTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   grid::FullTimeGrid
   gtr::AntiHermitianStorage{T,scalar}
   les::AntiHermitianStorage{T,scalar}
