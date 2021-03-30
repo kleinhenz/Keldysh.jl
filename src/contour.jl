@@ -50,6 +50,8 @@ function get_point(c::AbstractContour, ref)
   end
 end
 
+(c::AbstractContour)(ref::Real) = get_point(c, ref)
+
 function twist(c::FullContour)
   n = nbranches(c)
   FullContour(ntuple(i -> c.branches[mod1(i+1,n)], n), c.tmax, c.β)
@@ -67,7 +69,7 @@ function heaviside(c::AbstractContour, t1::BranchPoint, t2::BranchPoint)
   if t1.domain == t2.domain
     return t1.ref >= t2.ref
   else
-    return findfirst(b -> b.domain == t1.domain, c.branches) > 
+    return findfirst(b -> b.domain == t1.domain, c.branches) >
            findfirst(b -> b.domain == t2.domain, c.branches)
   end
 end
