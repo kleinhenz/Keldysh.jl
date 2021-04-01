@@ -1,4 +1,5 @@
 @testset "dos" begin
+  dos_integrator = Keldysh.GaussKronrodDOSIntegrator()
   # Flat DOS
   let ν=5.0, D=2.0, dos = Keldysh.flat_dos(ν=ν, D=D)
     α = ν*D

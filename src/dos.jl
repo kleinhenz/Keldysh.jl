@@ -1,4 +1,5 @@
 abstract type AbstractDOS end
+abstract type AbstractDOSIntegrator end
 
 struct DOS{F} <: AbstractDOS
   ωmin::Real
@@ -52,6 +53,14 @@ function (dos::SingularDOS)(ω)
   return x
 end
 
+struct DeltaDOS <: AbstractDOS
+  ϵ::Vector{Float64}
+  w::Vector{Float64}
+end
+
+DeltaDOS(ϵ::Number) = DeltaDOS([ϵ])
+DeltaDOS(ϵ::Vector) = DeltaDOS(ϵ, ones(size(ϵ)))
+
 """
 Support limits of a DOS object
 """
@@ -59,13 +68,28 @@ dos_support_limits(dos::AbstractDOS) = (-Inf, Inf)
 dos_support_limits(dos::DOS) = (dos.ωmin, dos.ωmax)
 dos_support_limits(dos::SingularDOS) = (dos.ωmin, dos.ωmax)
 
-"""Integrator for general DOS objects"""
-function dos_integrator(f, dos::AbstractDOS; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
+struct GaussKronrodDOSIntegrator <: AbstractDOSIntegrator
+  atol::Float64
+  rtol::Float64
+  maxevals::Int
+  order::Int
+end
+
+GaussKronrodDOSIntegrator(; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21) = GaussKronrodDOSIntegrator(atol, rtol, maxevals, order)
+function (integrator::GaussKronrodDOSIntegrator)(f, a, b)
+  integral, err = quadgk(ω -> f(ω),
+                         a,
+                         b,
+                         atol=integrator.atol,
+                         rtol=integrator.rtol,
+                         maxevals=integrator.maxevals,
+                         order=integrator.order)
+  return integral
+end
+
+function (integrator::GaussKronrodDOSIntegrator)(f, dos::AbstractDOS)
   limits = dos_support_limits(dos)
-  integral, err = quadgk(ω -> f(ω) * dos(ω),
-                         limits[1], limits[2],
-                         atol=atol, rtol=rtol, maxevals=maxevals, order=order)
-  integral
+  return integrator(ω -> f(ω) * dos(ω), limits[1], limits[2])
 end
 
 """
@@ -80,19 +104,27 @@ end
   and the value of the integral in the last term must be provided in the
   `integral` field of the corresponding `DOSSingularity` structure.
 """
-function dos_integrator(f, dos::SingularDOS; atol=1e-10, rtol=1e-10, maxevals=10^9, order=21)
+function (integrator::GaussKronrodDOSIntegrator)(f, dos::SingularDOS)
   limits = dos_support_limits(dos)
-  val = quadgk(ω -> f(ω) * dos.regular(ω),
-               limits[1], limits[2],
-               atol=atol, rtol=rtol, maxevals=maxevals, order=order)[1]
+  val = integrator(ω -> f(ω) * dos.regular(ω), limits[1], limits[2])
   for s in dos.singularities
     f_s = f(s.position)
-    val += quadgk(ω -> ω ≈ s.position ? .0 : s.asymptotics(ω) * (f(ω) - f_s),
-                  limits[1], limits[2],
-                  atol=atol, rtol=rtol, maxevals=maxevals, order=order)[1]
+    val += integrator(ω -> ω ≈ s.position ? .0 : s.asymptotics(ω) * (f(ω) - f_s), limits[1], limits[2])
     val += f_s * s.integral
   end
-  val
+  return val
+end
+
+function (integrator::GaussKronrodDOSIntegrator)(f, dos::DeltaDOS)
+  return sum(dos.w .* f.(dos.ϵ))
+end
+
+function dos2gf(dos, β, t1::BranchPoint, t2::BranchPoint, integrator = GaussKronrodDOSIntegrator())
+    theta = heaviside(t1, t2)
+    Δt = t1.val - t2.val
+    f = ω -> (ω > 0.0 ? exp(-1.0im * ω * (Δt - 1.0im * (1.0 - theta) * β)) / (exp(-β * ω) + 1) :
+                        exp(-1.0im * ω * (Δt + 1.0im * theta * β)) / (exp(β * ω) + 1))
+    return -1.0im * (2 * theta - 1) * integrator(f, dos)
 end
 
 #
