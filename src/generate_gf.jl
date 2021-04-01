@@ -1,10 +1,3 @@
-function dos2gf(dos, β, t1::BranchPoint, t2::BranchPoint; integrator = dos_integrator)
-    theta = heaviside(t1, t2)
-    Δt = t1.val - t2.val
-    f = ω -> (ω > 0.0 ? exp(-1.0im * ω * (Δt - 1.0im * (1.0 - theta) * β)) / (exp(-β * ω) + 1) :
-                        exp(-1.0im * ω * (Δt + 1.0im * theta * β)) / (exp(β * ω) + 1))
-    return -1.0im * (2 * theta - 1) * integrator(f, dos)
-end
 
 #function gf_1level(t1::BranchPoint, t2::BranchPoint; ϵ, β)
 #    -1.0im * (heaviside(t1, t2) - fermi(ϵ, β)) * exp(-1.0im * (t1.val - t2.val) * ϵ)

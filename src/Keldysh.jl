@@ -25,14 +25,14 @@ export dos_integrator, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
 #export gf_1level, dos2gf
 
 include("util.jl")
-include("dos.jl")
 include("branch.jl")
+include("dos.jl")
 include("contour.jl")
 include("time_grid.jl")
 include("storage.jl")
 include("interp.jl")
 include("gf.jl")
-include("generate_gf.jl")
+#include("generate_gf.jl")
 #include("observables.jl")
 #include("hdf5.jl")
 #include("nessi.jl")
