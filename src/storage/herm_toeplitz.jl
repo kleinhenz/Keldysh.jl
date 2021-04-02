@@ -21,7 +21,7 @@ AntiHermitianToeplitzStorage(N::Integer, norb=1, scalar=false) = TimeInvariantAn
 
 function Base.getindex(X::AntiHermitianToeplitzStorage{T,scalar}, i, j) where {T, scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
-  i < j && return -conj(X[j,i])
+  i < j && return copy(-adjoint(X[j,i]))
   k = i-j+1
   return scalar ? X.data[1,1,k] : X.data[:,:,k]
 end
@@ -31,7 +31,7 @@ function Base.setindex!(X::AntiHermitianToeplitzStorage{T,scalar}, v, i, j) wher
   if i == j
     @assert iszero(real(v))
   end
-  i < j && return X[j,i] = -conj(v)
+  i < j && return X[j,i] = -adjoint(v)
   k = i-j+1
   if scalar
     return X.data[1,1,k] = v

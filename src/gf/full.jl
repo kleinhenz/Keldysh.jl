@@ -45,7 +45,7 @@ FullTimeGF(grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) =
     return G.rm[i,j]
   elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
     ntau = G.grid.ntau
-    return -ξ * conj(G.rm[ntau+1-j,i]) # Aoki 19c
+    return copy(-ξ * adjoint(G.rm[ntau+1-j,i])) # Aoki 19c
   else
     return greater ? G.mat[i,j, greater] : ξ * G.mat[i,j, greater]
   end
@@ -65,7 +65,7 @@ function Base.setindex!(G::FullTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
     return G.rm[i,j] = v
   elseif ((t1.val.domain == forward_branch || t1.val.domain == backward_branch) && t2.val.domain == imaginary_branch)
     ntau = G.grid.ntau
-    return G.rm[ntau+1-j,i] = -ξ * conj(v) # Aoki 19c
+    return G.rm[ntau+1-j,i] = -ξ * adjoint(v) # Aoki 19c
   else
     if greater
       return G.mat[i,j] = v

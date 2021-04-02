@@ -42,7 +42,7 @@ AntiHermitianStorage(N::Integer, norb=1, scalar=false) = AntiHermitianStorage(Co
 
 function Base.getindex(X::AntiHermitianStorage{T,scalar}, i, j) where {T, scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
-  i < j && return -conj(X[j,i])
+  i < j && return copy(-adjoint(X[j,i]))
   k = div((i-1)*i,2)
   k += j
   return scalar ? X.data[1,1,k] : X.data[:,:,k]
@@ -50,10 +50,7 @@ end
 
 function Base.setindex!(X::AntiHermitianStorage{T,scalar}, v, i, j) where {T, scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
-#  if i == j
-#    @assert iszero(real(v))
-#  end
-  i < j && return X[j,i] = -conj(v)
+  i < j && return X[j,i] = -adjoint(v)
   k = div((i-1)*i,2)
   k += j
   if scalar
