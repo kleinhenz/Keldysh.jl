@@ -6,6 +6,7 @@ struct NessiGFData
   nt::Int
   ntau::Int
   norb::Int
+  sig::Int
 end
 
 function _nessi_read_les(h5g::HDF5.Group)
@@ -71,16 +72,61 @@ function NessiGFData(h5g::HDF5.Group)
   nt = read(h5g, "nt")[]
   ntau = read(h5g, "ntau")[]
   norb = read(h5g, "size1")[]
+  sig = read(h5g, "sig")[]
 
-  return NessiGFData(les, ret, tv, mat, nt, ntau, norb)
+  return NessiGFData(les, ret, tv, mat, nt, ntau, norb, sig)
 end
 
-function TimeGF(data::NessiGFData, grid::TimeGrid)
-  if grid.contour.domain == full_contour
-    return TimeGF(data.les, data.ret, data.tv, data.mat, grid)
-  elseif grid.contour.domain == keldysh_contour
-    return TimeGF(data.les, data.ret, grid)
-  else
-    error("unsupported")
+function FullTimeGF(data::NessiGFData, grid::FullTimeGrid)
+  nt = grid.nt
+  ntau = grid.ntau
+
+  @assert nt == data.nt+1
+  @assert ntau == data.ntau+1
+  ξ = data.sig == 1 ? bosonic : fermionic
+
+  G = FullTimeGF(grid, data.norb, ξ, false)
+
+  tplus = grid[forward_branch]
+  tminus = reverse(grid[backward_branch])
+  tau = grid[imaginary_branch]
+
+  # lesser
+  for i in 1:nt
+    for j in 1:i
+      t1 = tplus[j]
+      t2 = tminus[i]
+      G[t1,t2] = data.les[:,:,j,i]
+    end
   end
+
+  # greater
+  for i in 1:nt
+    for j in 1:i
+      t1 = tminus[j]
+      t2 = tminus[i]
+      G[t1,t2] = (data.les[:,:,j,i] .+ data.ret[:,:,j,i])
+    end
+  end
+
+  # matsubara
+  for i in 1:ntau
+    t1 = tau[i]
+    t2 = tau[1]
+    G[t1,t2] = 1.0im * data.mat[:,:,i]
+  end
+
+
+  # left-mixing
+  # NOTE: NessiGFData stores left-mixing while FullTimeGF stores right-mixing
+  # We rely on setindex! method to apply symmetry Hermitian symmetry
+  for i in 1:nt
+    for j in 1:ntau
+      t1 = tminus[i]
+      t2 = tau[j]
+      G[t1, t2] = data.tv[:,:,i,j]
+    end
+  end
+
+  return G
 end
