@@ -33,9 +33,9 @@ include("storage.jl")
 include("interp.jl")
 include("gf.jl")
 include("alps.jl")
+include("nessi.jl")
 
 #include("generate_gf.jl")
 #include("observables.jl")
-#include("nessi.jl")
 
 end # module
