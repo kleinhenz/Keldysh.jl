@@ -20,7 +20,7 @@
     @test integrate(t -> 1, grid) ≈ -1.0im * c.β
 
     for b in c.branches
-      for t in b.(range(0.0, 1.0, length=101))
+      for t in b.(range(0.0, 1.0, length=3))
         tl = Keldysh.find_lower(grid, t)
         @test tl.val.domain == t.domain
         @test tl.idx != length(grid)

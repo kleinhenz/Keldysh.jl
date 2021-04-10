@@ -3,16 +3,19 @@ struct AntiHermitianStorage{T,scalar} <: AbstractStorage{T, scalar}
   norb::Int
   N::Int
 
-  function AntiHermitianStorage(data::AbstractArray{T,3}, scalar=false) where T
+  function AntiHermitianStorage{T, scalar}(data::AbstractArray{T,3}) where {T, scalar}
     norb = size(data,1)
     M = size(data,3)
     @assert norb == size(data,1) == size(data,2)
     @assert !(scalar && norb > 1)
-
     N = div(-1 + isqrt(1 + 8M), 2)
     @assert div(N*(N+1),2) == M
-    new{T,scalar}(data,norb,N)
+    new(data,norb,N)
   end
+end
+
+function AntiHermitianStorage(data::AbstractArray{T,3}, scalar=false) where T
+  AntiHermitianStorage{T,scalar}(data)
 end
 
 function AntiHermitianStorage(data::AbstractArray{T,4}, scalar=false) where T
@@ -58,6 +61,18 @@ function Base.setindex!(X::AntiHermitianStorage{T,scalar}, v, i, j) where {T, sc
   else
     return X.data[:,:,k] = v
   end
+end
+
+function Base.size(X::AntiHermitianStorage)
+  return (X.norb, X.norb, X.N, X.N)
+end
+
+function Base.similar(X::T) where T <: AntiHermitianStorage
+  T(similar(X.data))
+end
+
+function Base.zero(X::T) where T <: AntiHermitianStorage
+  T(zero(X.data))
 end
 
 function Base.:+(X::AntiHermitianStorage{T,scalar}, Y::AntiHermitianStorage{T,scalar}) where {T,scalar}

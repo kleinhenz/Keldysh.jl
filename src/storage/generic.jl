@@ -4,14 +4,18 @@ struct GenericStorage{T,scalar} <: AbstractStorage{T, scalar}
   N::Int
   M::Int
 
-  function GenericStorage(data::AbstractArray{T,4}, scalar=false) where T
+  function GenericStorage{T, scalar}(data::AbstractArray{T,4}) where {T, scalar}
     norb = size(data,1)
     N = size(data,3)
     M = size(data,4)
     @assert size(data) == (norb, norb, N, M)
     @assert !(scalar && norb > 1)
-    new{T,scalar}(data,norb,N,M)
+    return new(data, norb, N, M)
   end
+end
+
+function GenericStorage(data::AbstractArray{T,4}, scalar=false) where T
+  GenericStorage{T,scalar}(data)
 end
 
 function GenericStorage(::Type{T}, N::Integer, M::Integer, norb=1, scalar=false) where T <: Number
@@ -20,10 +24,6 @@ function GenericStorage(::Type{T}, N::Integer, M::Integer, norb=1, scalar=false)
 end
 
 GenericStorage(N::Integer, M::Integer, norb=1, scalar=false) = GenericStorage(ComplexF64, N, M, norb, scalar)
-
-function Base.size(X::GenericStorage)
-  return (X.norb, X.norb, X.N, X.M)
-end
 
 function Base.getindex(X::GenericStorage{T,scalar}, i, j) where {T, scalar}
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M)
@@ -42,6 +42,18 @@ end
 function Base.setindex!(X::GenericStorage{T,true}, v, i, j) where T
   @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M)
   return X.data[1,1,i,j] = v
+end
+
+function Base.size(X::GenericStorage)
+  return (X.norb, X.norb, X.N, X.M)
+end
+
+function Base.similar(X::T) where T <: GenericStorage
+  T(similar(X.data))
+end
+
+function Base.zero(X::T) where T <: GenericStorage
+  T(zero(X.data))
 end
 
 function Base.:+(X::GenericStorage{T,scalar}, Y::GenericStorage{T,scalar}) where {T,scalar}

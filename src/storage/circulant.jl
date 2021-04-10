@@ -3,13 +3,17 @@ struct CirculantStorage{T,scalar} <: AbstractStorage{T, scalar}
   norb::Int
   N::Int
 
-  function CirculantStorage(data::AbstractArray{T,3}, scalar=false) where T
+  function CirculantStorage{T,scalar}(data::AbstractArray{T,3}) where {T, scalar}
     norb = size(data,1)
     N = size(data,3)
     @assert size(data) == (norb, norb, N)
     @assert !(scalar && norb > 1)
-    new{T,scalar}(data,norb,N)
+    new(data,norb,N)
   end
+end
+
+function CirculantStorage(data::AbstractArray{T,3}, scalar=false) where T
+  CirculantStorage{T,scalar}(data)
 end
 
 function CirculantStorage(::Type{T}, N::Integer, norb=1, scalar=false) where T <: Number
@@ -47,6 +51,18 @@ function Base.setindex!(X::CirculantStorage{T,scalar}, v, i, j) where {T,scalar}
       return X.data[:,:,i-j+X.N] = v
     end
   end
+end
+
+function Base.size(X::CirculantStorage)
+  return (X.norb, X.norb, X.N, X.N)
+end
+
+function Base.similar(X::T) where T <: CirculantStorage
+  T(similar(X.data))
+end
+
+function Base.zero(X::T) where T <: CirculantStorage
+  T(zero(X.data))
 end
 
 function Base.:+(X::CirculantStorage{T,scalar}, Y::CirculantStorage{T,scalar}) where {T,scalar}

@@ -2,12 +2,6 @@ struct ImaginaryTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   grid::ImaginaryTimeGrid
   mat::CirculantStorage{T,scalar}
   ξ::GFSignEnum
-
-  function ImaginaryTimeGF(grid::ImaginaryTimeGrid,
-                           mat::CirculantStorage{T, scalar},
-                           ξ::GFSignEnum=fermionic) where {T, scalar}
-    new{T, scalar}(grid, mat, ξ)
-  end
 end
 
 norbitals(G::ImaginaryTimeGF) = G.mat.norb
@@ -42,6 +36,22 @@ function Base.setindex!(G::ImaginaryTimeGF, v, t1::TimeGridPoint, t2::TimeGridPo
   else
     G.mat[i,j] = ξ * v
   end
+end
+
+function Base.similar(G::T, ξ::GFSignEnum) where T <: ImaginaryTimeGF
+  T(G.grid, similar(G.mat), ξ)
+end
+
+function Base.zero(G::T, ξ::GFSignEnum) where T <: ImaginaryTimeGF
+  T(G.grid, zero(G.mat), ξ)
+end
+
+function Base.similar(G::T) where T <: ImaginaryTimeGF
+  similar(G, G.ξ)
+end
+
+function Base.zero(G::T) where T <: ImaginaryTimeGF
+  zero(G, G.ξ)
 end
 
 function TimeDomain(G::ImaginaryTimeGF)
