@@ -13,7 +13,7 @@ export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoin
 export AbstractContour, FullContour, KeldyshContour, ImaginaryContour, twist, heaviside, nbranches
 
 # TimeGrid functions
-export AbstractTimeGrid, FullTimeGrid, KeldyshTimeGrid, ImaginaryTimeGrid, TimeDomain, integrate, realtimes, imagetimes
+export AbstractTimeGrid, FullTimeGrid, KeldyshTimeGrid, ImaginaryTimeGrid, TimeGridPoint, TimeDomain, integrate, realtimes, imagtimes
 
 # TimeGF functions
 export fermionic, bosonic, norbitals, AbstractTimeGF, GenericTimeGF, FullTimeGF, TimeInvariantFullTimeGF, KeldyshTimeGF, TimeInvariantKeldyshTimeGF, ImaginaryTimeGF
