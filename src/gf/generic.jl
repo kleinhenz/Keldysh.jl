@@ -48,3 +48,24 @@ end
 function Base.zero(G::T) where T <: GenericTimeGF
   T(G.grid, zero(G.data))
 end
+
+function GenericTimeGF(dos::AbstractDOS, grid::FullTimeGrid)
+  G = TimeInvariantFullTimeGF(dos, grid)
+  GenericTimeGF(grid,1,true) do t1, t2
+    G[t1,t2]
+  end
+end
+
+function GenericTimeGF(dos::AbstractDOS, grid::ImaginaryTimeGrid)
+  G = ImaginaryTimeGF(dos, grid)
+  GenericTimeGF(grid,1,true) do t1, t2
+    G[t1,t2]
+  end
+end
+
+function GenericTimeGF(dos::AbstractDOS, β, grid::KeldyshTimeGrid)
+  G = TimeInvariantKeldyshTimeGF(dos, β, grid)
+  GenericTimeGF(grid,1,true) do t1, t2
+    G[t1,t2]
+  end
+end
