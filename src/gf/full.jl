@@ -5,15 +5,6 @@ struct FullTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   rm::GenericStorage{T,scalar}
   mat::CirculantStorage{T,scalar}
   ξ::GFSignEnum
-
-  function FullTimeGF(grid::FullTimeGrid,
-                      gtr::AntiHermitianStorage{T,scalar},
-                      les::AntiHermitianStorage{T,scalar},
-                      rm::GenericStorage{T,scalar},
-                      mat::CirculantStorage{T,scalar},
-                      ξ::GFSignEnum=fermionic) where {T, scalar}
-    new{T, scalar}(grid, gtr, les, rm, mat, ξ)
-  end
 end
 
 norbitals(G::FullTimeGF) = G.gtr.norb
@@ -73,6 +64,22 @@ function Base.setindex!(G::FullTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
       return G.mat[i,j] = ξ * v
     end
   end
+end
+
+function Base.similar(G::T, ξ::GFSignEnum) where T <: FullTimeGF
+  T(G.grid, similar(G.gtr), similar(G.les), similar(G.rm), similar(G.mat), ξ)
+end
+
+function Base.zero(G::T, ξ::GFSignEnum) where T <: FullTimeGF
+  T(G.grid, zero(G.gtr), zero(G.les), zero(G.rm), zero(G.mat), ξ)
+end
+
+function Base.similar(G::T) where T <: FullTimeGF
+  similar(G, G.ξ)
+end
+
+function Base.zero(G::T) where T <: FullTimeGF
+  zero(G, G.ξ)
 end
 
 function TimeDomain(G::FullTimeGF)

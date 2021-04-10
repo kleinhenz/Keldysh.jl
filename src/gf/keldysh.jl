@@ -3,13 +3,6 @@ struct KeldyshTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   gtr::AntiHermitianStorage{T,scalar}
   les::AntiHermitianStorage{T,scalar}
   ξ::GFSignEnum
-
-  function KeldyshTimeGF(grid::KeldyshTimeGrid,
-                      gtr::AntiHermitianStorage{T,scalar},
-                      les::AntiHermitianStorage{T,scalar},
-                      ξ::GFSignEnum=fermionic) where {T, scalar}
-    new{T, scalar}(grid, gtr, les, ξ)
-  end
 end
 
 norbitals(G::KeldyshTimeGF) = G.gtr.norb
@@ -40,6 +33,22 @@ function Base.setindex!(G::KeldyshTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoin
   j = t2.ridx
 
   return greater ? G.gtr[i,j] = v : G.les[i,j] = v
+end
+
+function Base.similar(G::T, ξ::GFSignEnum) where T <: KeldyshTimeGF
+  T(G.grid, similar(G.gtr), similar(G.les), ξ)
+end
+
+function Base.zero(G::T, ξ::GFSignEnum) where T <: KeldyshTimeGF
+  T(G.grid, zero(G.gtr), zero(G.les), ξ)
+end
+
+function Base.similar(G::T) where T <: KeldyshTimeGF
+  similar(G, G.ξ)
+end
+
+function Base.zero(G::T) where T <: KeldyshTimeGF
+  zero(G, G.ξ)
 end
 
 function TimeDomain(G::KeldyshTimeGF)

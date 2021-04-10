@@ -1,11 +1,8 @@
 struct GenericTimeGF{T, scalar, U <: AbstractTimeGrid} <: AbstractTimeGF{T, scalar}
   grid::U
   data::GenericStorage{T, scalar}
-
-  function GenericTimeGF(grid::U, data::GenericStorage{T,scalar}) where {T, U <: AbstractTimeGrid, scalar}
-    return new{T,scalar, U}(grid, data)
-  end
 end
+
 norbitals(G::GenericTimeGF) = G.data.norb
 
 function GenericTimeGF(::Type{T}, grid::AbstractTimeGrid, norb=1, scalar=false) where T <: Number
@@ -42,4 +39,12 @@ function jump(G::GenericTimeGF)
   t0_plus = branch_bounds(G.grid, forward_branch)[1]
   t0_minus = branch_bounds(G.grid, backward_branch)[2]
   return G[t0_plus, t0_minus] - G[t0_plus, t0_plus]
+end
+
+function Base.similar(G::T) where T <: GenericTimeGF
+  T(G.grid, similar(G.data))
+end
+
+function Base.zero(G::T) where T <: GenericTimeGF
+  T(G.grid, zero(G.data))
 end
