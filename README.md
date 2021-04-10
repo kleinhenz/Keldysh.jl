@@ -10,15 +10,4 @@ Additionally, it provides functions for generating Green's functions, performing
 Credit to Andrey Antipov and Igor Krivenko for designing a first version of the abstractions implemented here.
 
 ## Usage
-The following code generates a non-equilibrium Green's function from a spectral density and saves it to an hdf5 archive
-```Julia
-using Keldysh, HDF5
-
-contour = twist(Contour(full_contour, tmax=1.0, β=5.0))
-grid = TimeGrid(contour, npts_real=11, npts_imag=51)
-dos = Keldysh.flat_dos(D=10.0)
-gf = dos2gf(dos, grid)
-h5write("output.h5", "/gf", gf)
-```
-
 [anderson_nca.jl](examples/anderson_nca.jl) implements a NCA solver for the anderson impurity model using `Keldysh.jl`.
