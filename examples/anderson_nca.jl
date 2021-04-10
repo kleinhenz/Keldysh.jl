@@ -57,15 +57,16 @@ function populations(P)
 end
 
 struct NCAParams
-  dyson_tol::Float64
+  dyson_rtol::Float64
+  dyson_atol::Float64
   dyson_max_iter::Int
   max_order::Int
-  function NCAParams(dyson_tol, dyson_max_iter, max_order)
+  function NCAParams(dyson_rtol, dyson_atol, dyson_max_iter, max_order)
     @assert 1 <= max_order <= 2
-    new(dyson_tol, dyson_max_iter, max_order)
+    new(dyson_rtol, dyson_atol, dyson_max_iter, max_order)
   end
 end
-NCAParams(; dyson_tol = 1e-6, dyson_max_iter = 100, max_order = 1) = NCAParams(dyson_tol, dyson_max_iter, max_order)
+NCAParams(; dyson_rtol = 1e-6, dyson_atol = 1e-10, dyson_max_iter = 100, max_order = 1) = NCAParams(dyson_rtol, dyson_atol, dyson_max_iter, max_order)
 
 struct NCAData{T <: AbstractTimeGF, U <: AbstractTimeGrid}
   P0::Array{T,1} # bare propagator
@@ -178,7 +179,7 @@ function dyson(data::NCAData, t1::TimeGridPoint, t2::TimeGridPoint, params::NCAP
     end
 
     diff = norm(p_t1t2_cur - p_t1t2_next)
-    done = diff < params.dyson_tol * norm(p_t1t2_cur)
+    done = diff < max(params.dyson_atol, params.dyson_rtol * norm(p_t1t2_cur))
     for st in data.states
       data.P[st][t1,t2] = p_t1t2_next[st]
     end
@@ -233,7 +234,8 @@ param_def = [(String, :contour, "keldysh"),
              (Float64, :beta, 5.0),
              (Int, :nt, 201),
              (Int, :ntau, 101),
-             (Float64, :tol, 1e-6),
+             (Float64, :rtol, 1e-6),
+             (Float64, :atol, 1e-10),
              (Int, :max_iter, 200),
              (String, :mode, "nca"),
              (Float64, :D, 10.0),
@@ -276,7 +278,7 @@ function main()
   end
 
   max_order = Dict("nca"=>1, "oca"=>2)[p.mode]
-  params = NCAParams(dyson_tol = p.tol, dyson_max_iter = p.max_iter, max_order = max_order)
+  params = NCAParams(dyson_rtol = p.rtol, dyson_atol = p.atol, dyson_max_iter = p.max_iter, max_order = max_order)
 
   nca!(data, params)
 
