@@ -146,7 +146,7 @@ function Σoca(data::NCAData, t1::TimeGridPoint, t4::TimeGridPoint, st_sigma::Fo
   end
 end
 
-function dyson(data::NCAData, t1::TimeGridPoint, t2::TimeGridPoint, params::NCAParams)
+function dyson!(data::NCAData, t1::TimeGridPoint, t2::TimeGridPoint, params::NCAParams)
   @assert t1.idx >= t2.idx
 
   p_t1t2_cur = zeros(ComplexF64, length(data.states))
@@ -196,7 +196,7 @@ function nca!(data::NCAData, params::NCAParams)
       i = j + d
       t1 = data.grid[i]
       t2 = data.grid[j]
-      dyson(data, t1, t2, params)
+      dyson!(data, t1, t2, params)
     end
   end
 
