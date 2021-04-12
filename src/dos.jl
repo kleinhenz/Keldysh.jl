@@ -59,7 +59,7 @@ struct DeltaDOS <: AbstractDOS
 end
 
 DeltaDOS(ϵ::Number) = DeltaDOS([ϵ])
-DeltaDOS(ϵ::Vector) = DeltaDOS(ϵ, ones(size(ϵ)))
+DeltaDOS(ϵ::Vector) = DeltaDOS(ϵ, ones(length(ϵ)) / length(ϵ))
 
 """
 Support limits of a DOS object
