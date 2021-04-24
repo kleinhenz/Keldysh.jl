@@ -138,6 +138,17 @@ realtimes(grid::KeldyshTimeGrid) = range(0.0, grid.contour.tmax, length=grid.nt)
 imagtimes(grid::FullTimeGrid) = range(0.0, grid.contour.β, length=grid.ntau)
 imagtimes(grid::ImaginaryTimeGrid) = range(0.0, grid.contour.β, length=grid.ntau)
 
+"""
+    struct TimeDomain <: Any
+
+Container for a vector of pairs of `TimeGridPoint`s.
+Represents the domain over which a Green's function is defined.
+
+Fields
+======
+
+`points :: Vector{Tuple{TimeGridPoint, TimeGridPoint}}`
+"""
 struct TimeDomain
   points::Vector{Tuple{TimeGridPoint, TimeGridPoint}}
 end
@@ -149,7 +160,6 @@ function find_lower(grid::AbstractTimeGrid, t::BranchPoint)
   else
     npts = t.domain == imaginary_branch ? grid.ntau : grid.nt
     step = 1 / (npts - 1)
-    delta = Int(floor(t.ref / step))
     idx = bounds.first.idx + Int(floor(t.ref / step))
   end
   return grid[idx]
