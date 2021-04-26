@@ -109,9 +109,7 @@ end
 
 struct ALPSTimeGF
   G
-  function ALPSTimeGF(G::T) where T <: AbstractTimeGF
-    @assert norbitals(G) == 1
-    @assert eltype(G) == ComplexF64
+  function ALPSTimeGF(G::T) where T <: AbstractTimeGF{ComplexF64, true}
     new(G)
   end
 end
