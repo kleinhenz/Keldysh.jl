@@ -34,7 +34,7 @@
 
     grid_fine = FullTimeGrid(c, 41, 101)
 
-    @test all(map(Iterators.product(grid, grid)) do (t1, t2)
+    @test all(map(Iterators.product(grid_fine, grid_fine)) do (t1, t2)
                 isapprox(G1(t1.val, t2.val), lin_f(t1.val, t2.val), atol=1e-10)
               end
              )
