@@ -292,7 +292,7 @@ function main()
 
     h5f["/output/obs/pop/rho"] = ρt
     h5f["/output/obs/pop/Z"] = Zt
-    h5f["/output/obs/pop/t"] = collect(t)
+    h5f["/output/obs/pop/t"] = t
   end
 end
 
