@@ -19,7 +19,7 @@ export AbstractTimeGrid, FullTimeGrid, KeldyshTimeGrid, ImaginaryTimeGrid, TimeG
 export fermionic, bosonic, norbitals, AbstractTimeGF, GenericTimeGF, FullTimeGF, TimeInvariantFullTimeGF, KeldyshTimeGF, TimeInvariantKeldyshTimeGF, ImaginaryTimeGF
 
 # DOS functions
-export DeltaDOS, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
+export AbstractDOS, DOS, SingularDOS, DeltaDOS, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
 
 
 include("util.jl")
