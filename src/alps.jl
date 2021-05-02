@@ -71,7 +71,7 @@ function ALPSTimeGrid(g::HDF5.Group)
     grid = FullTimeGrid(c, nt, ntau)
   elseif nb == 2
     tmax = length(get_branch(forward_branch))
-    KeldyshContour(branches, tmax)
+    c = KeldyshContour(branches, tmax)
     grid = KeldyshTimeGrid(c, nt)
   else
     β = length(get_branch(imaginary_branch))
