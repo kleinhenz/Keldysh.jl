@@ -22,14 +22,14 @@
     for b in c.branches
       for t in b.(range(0.0, 1.0, length=3))
         tl = Keldysh.find_lower(grid, t)
-        @test tl.val.domain == t.domain
+        @test tl.bpoint.domain == t.domain
         @test tl.idx != length(grid)
         tu = grid[tl.idx + 1]
 
-        @test heaviside(c, t, tl.val)
-        @test heaviside(c, tu.val, t)
-        @test heaviside(c, t, grid[1].val)
-        @test heaviside(c, grid[end].val, t)
+        @test heaviside(c, t, tl.bpoint)
+        @test heaviside(c, tu.bpoint, t)
+        @test heaviside(c, t, grid[1].bpoint)
+        @test heaviside(c, grid[end].bpoint, t)
       end
     end
   end
@@ -58,7 +58,7 @@
     for t1 in grid
       for t2 in grid
         A[t1.idx, t2.idx] = integrate(t -> 1.0, grid, t1, t2)
-        B[t1.idx, t2.idx] = t1.val.val - t2.val.val
+        B[t1.idx, t2.idx] = t1.bpoint.val - t2.bpoint.val
       end
     end
     @test maximum(abs.(A .- B)) < 1e-12

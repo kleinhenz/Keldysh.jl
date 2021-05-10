@@ -210,7 +210,7 @@ function make_bare_prop(grid::KeldyshTimeGrid, ρ, ϵ, U)
     GenericTimeGF(grid, 1, true) do t1, t2
       t1.idx < t2.idx && return 0.0
       ϕ = integrate(t -> E[s], grid, t1, t2)
-      heaviside(t1.val, t2.val) ? -im * exp(-im * ϕ) : -im * ξ[s] * ρ[s] * exp(-im * ϕ)
+      heaviside(t1.bpoint, t2.bpoint) ? -im * exp(-im * ϕ) : -im * ξ[s] * ρ[s] * exp(-im * ϕ)
     end
   end
   return P
@@ -223,7 +223,7 @@ function make_bare_prop(grid::FullTimeGrid, ϵ, U)
     GenericTimeGF(grid, 1, true) do t1, t2
       t1.idx < t2.idx && return 0.0
       ϕ = integrate(t -> E[s], grid, t1, t2)
-      heaviside(t1.val, t2.val) ? -im * exp(-im * ϕ) : -im * ξ[s] * exp(-im * ϕ)
+      heaviside(t1.bpoint, t2.bpoint) ? -im * exp(-im * ϕ) : -im * ξ[s] * exp(-im * ϕ)
     end
   end
   return P

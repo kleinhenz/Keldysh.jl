@@ -2,7 +2,7 @@
 
   let c = FullContour(tmax=2.0, β=5.0), nt = 21, ntau=51
     ϵ = -1.0
-    f = (t1, t2) -> -1.0im * (heaviside(t1.val, t2.val) - fermi(ϵ, c.β)) * exp(-1.0im * (t1.val.val - t2.val.val) * ϵ)
+    f = (t1, t2) -> -1.0im * (heaviside(t1.bpoint, t2.bpoint) - fermi(ϵ, c.β)) * exp(-1.0im * (t1.bpoint.val - t2.bpoint.val) * ϵ)
 
     grid = FullTimeGrid(c, nt, ntau)
 
@@ -28,14 +28,14 @@
     lin_f = (t1, t2) -> (2.0 * t1.val - im * t2.val) + 5.0 * heaviside(t1, t2)
     for t1 in grid
       for t2 in grid
-        G1[t1, t2] = lin_f(t1.val, t2.val)
+        G1[t1, t2] = lin_f(t1.bpoint, t2.bpoint)
       end
     end
 
     grid_fine = FullTimeGrid(c, 41, 101)
 
     @test all(map(Iterators.product(grid_fine, grid_fine)) do (t1, t2)
-                isapprox(G1(t1.val, t2.val), lin_f(t1.val, t2.val), atol=1e-10)
+                isapprox(G1(t1.bpoint, t2.bpoint), lin_f(t1.bpoint, t2.bpoint), atol=1e-10)
               end
              )
   end
@@ -44,7 +44,7 @@
 
     ϵ = -1.0
     β = 5.0
-    f = (t1, t2) -> -1.0im * (heaviside(t1.val, t2.val) - fermi(ϵ, β)) * exp(-1.0im * (t1.val.val - t2.val.val) * ϵ)
+    f = (t1, t2) -> -1.0im * (heaviside(t1.bpoint, t2.bpoint) - fermi(ϵ, β)) * exp(-1.0im * (t1.bpoint.val - t2.bpoint.val) * ϵ)
 
     grid = KeldyshTimeGrid(c, nt)
 
@@ -70,7 +70,7 @@
 
   let c = ImaginaryContour(β=5.0), ntau=51
     ϵ = -1.0
-    f = (t1, t2) -> -1.0im * (heaviside(t1.val, t2.val) - fermi(ϵ, c.β)) * exp(-1.0im * (t1.val.val - t2.val.val) * ϵ)
+    f = (t1, t2) -> -1.0im * (heaviside(t1.bpoint, t2.bpoint) - fermi(ϵ, c.β)) * exp(-1.0im * (t1.bpoint.val - t2.bpoint.val) * ϵ)
     grid = ImaginaryTimeGrid(c, ntau)
 
     G1 = GenericTimeGF(f, grid, 1, true)

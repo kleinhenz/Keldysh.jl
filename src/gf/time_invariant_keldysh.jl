@@ -18,7 +18,7 @@ end
 TimeInvariantKeldyshTimeGF(grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = TimeInvariantKeldyshTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
 @inline function Base.getindex(G::TimeInvariantKeldyshTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
-  greater = t1 == t2 ? greater : heaviside(t1.val, t2.val)
+  greater = t1 == t2 ? greater : heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
   j = t2.ridx
@@ -27,7 +27,7 @@ TimeInvariantKeldyshTimeGF(grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=fermion
 end
 
 function Base.setindex!(G::TimeInvariantKeldyshTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
-  greater = heaviside(t1.val, t2.val)
+  greater = heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
   j = t2.ridx
@@ -83,6 +83,6 @@ TimeInvariantKeldyshTimeGF(f::Function, grid::KeldyshTimeGrid, norb=1, ξ::GFSig
 
 function TimeInvariantKeldyshTimeGF(dos::AbstractDOS, β, grid::KeldyshTimeGrid)
   TimeInvariantKeldyshTimeGF(grid, 1, fermionic, true) do t1, t2
-    Keldysh.dos2gf(dos, β, t1.val, t2.val)
+    Keldysh.dos2gf(dos, β, t1.bpoint, t2.bpoint)
   end
 end
