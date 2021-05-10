@@ -18,7 +18,7 @@ end
 KeldyshTimeGF(grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = KeldyshTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
 @inline function Base.getindex(G::KeldyshTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
-  greater = t1 == t2 ? greater : heaviside(t1.val, t2.val)
+  greater = t1 == t2 ? greater : heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
   j = t2.ridx
@@ -27,7 +27,7 @@ KeldyshTimeGF(grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=fa
 end
 
 function Base.setindex!(G::KeldyshTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
-  greater = heaviside(t1.val, t2.val)
+  greater = heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
   j = t2.ridx

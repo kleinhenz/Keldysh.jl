@@ -78,7 +78,7 @@ function ALPSTimeGrid(g::HDF5.Group)
     grid = ImaginaryTimeGrid(c, ntau)
   end
 
-  @assert map(t -> t.val.val, grid) ≈ values
+  @assert map(t -> t.bpoint.val, grid) ≈ values
 
   return ALPSTimeGrid(grid)
 end
@@ -97,7 +97,7 @@ function Base.write(parent::Union{HDF5.File, HDF5.Group}, name::String, X::ALPST
     g["contour/branch$(i-1)/len"] = length(branch)
   end
 
-  values = ALPSComplex(map(t -> t.val.val, grid))
+  values = ALPSComplex(map(t -> t.bpoint.val, grid))
   refs = map(t -> t.val.ref, grid)
   branch_enums = map(t -> Int32(Int(t.val.domain) - 1), grid)
 

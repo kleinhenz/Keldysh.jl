@@ -67,19 +67,19 @@ function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoin
 
   if t1 == t2
     return _line_interp(t1.val,
-                        t1_l.val.val,
-                        t1_r.val.val,
+                        t1_l.bpoint.val,
+                        t1_r.bpoint.val,
                         G[t1_l, t1_l, greater],
                         G[t1_r, t1_r, greater])
   end
 
   if !do_triangular_interp
     return _square_interp(t1.val,
-                          t1_l.val.val,
-                          t1_r.val.val,
+                          t1_l.bpoint.val,
+                          t1_r.bpoint.val,
                           t2.val,
-                          t2_l.val.val,
-                          t2_r.val.val,
+                          t2_l.bpoint.val,
+                          t2_r.bpoint.val,
                           G[t1_l, t2_l, greater],
                           G[t1_l, t2_r, greater],
                           G[t1_r, t2_l, greater],
@@ -87,21 +87,21 @@ function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoin
   else
     if greater # t1 >= t2
       return _tri_interp(t1.val,
-                         t1_l.val.val,
-                         t1_r.val.val,
+                         t1_l.bpoint.val,
+                         t1_r.bpoint.val,
                          t2.val,
-                         t2_l.val.val,
-                         t2_r.val.val,
+                         t2_l.bpoint.val,
+                         t2_r.bpoint.val,
                          G[t1_l, t2_l, greater],
                          G[t1_r, t2_l, greater],
                          G[t1_r, t2_r, greater])
     else
       return _tri_interp(t2.val,
-                         t2_l.val.val,
-                         t2_r.val.val,
+                         t2_l.bpoint.val,
+                         t2_r.bpoint.val,
                          t1.val,
-                         t1_l.val.val,
-                         t1_r.val.val,
+                         t1_l.bpoint.val,
+                         t1_r.bpoint.val,
                          G[t1_l, t2_l, greater],
                          G[t1_l, t2_r, greater],
                          G[t1_r, t2_r, greater])
@@ -126,8 +126,8 @@ function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::Branc
   if t1 == t2
     return _line_interp!(x,
                         t1.val,
-                        t1_l.val.val,
-                        t1_r.val.val,
+                        t1_l.bpoint.val,
+                        t1_r.bpoint.val,
                         G[t1_l, t1_l, greater],
                         G[t1_r, t1_r, greater])
   end
@@ -135,11 +135,11 @@ function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::Branc
   if !do_triangular_interp
     return _square_interp!(x,
                           t1.val,
-                          t1_l.val.val,
-                          t1_r.val.val,
+                          t1_l.bpoint.val,
+                          t1_r.bpoint.val,
                           t2.val,
-                          t2_l.val.val,
-                          t2_r.val.val,
+                          t2_l.bpoint.val,
+                          t2_r.bpoint.val,
                           G[t1_l, t2_l, greater],
                           G[t1_l, t2_r, greater],
                           G[t1_r, t2_l, greater],
@@ -148,22 +148,22 @@ function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::Branc
     if greater # t1 >= t2
       return _tri_interp!(x,
                          t1.val,
-                         t1_l.val.val,
-                         t1_r.val.val,
+                         t1_l.bpoint.val,
+                         t1_r.bpoint.val,
                          t2.val,
-                         t2_l.val.val,
-                         t2_r.val.val,
+                         t2_l.bpoint.val,
+                         t2_r.bpoint.val,
                          G[t1_l, t2_l, greater],
                          G[t1_r, t2_l, greater],
                          G[t1_r, t2_r, greater])
     else
       return _tri_interp!(x,
                          t2.val,
-                         t2_l.val.val,
-                         t2_r.val.val,
+                         t2_l.bpoint.val,
+                         t2_r.bpoint.val,
                          t1.val,
-                         t1_l.val.val,
-                         t1_r.val.val,
+                         t1_l.bpoint.val,
+                         t1_r.bpoint.val,
                          G[t1_l, t2_l, greater],
                          G[t1_l, t2_r, greater],
                          G[t1_r, t2_r, greater])

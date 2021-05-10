@@ -1,7 +1,7 @@
 struct TimeGridPoint
   idx::Int64 # contour index
   ridx::Int64 # real/imag time index
-  val::BranchPoint
+  bpoint::BranchPoint
 end
 
 abstract type AbstractTimeGrid <: AbstractVector{TimeGridPoint} end
@@ -107,14 +107,14 @@ function integrate(f, grid::AbstractTimeGrid, t1::TimeGridPoint, t2::TimeGridPoi
 
   integral = init
 
-  first_branch_idx = findfirst(x -> x.domain == t2.val.domain, grid.contour.branches)
-  last_branch_idx = findfirst(x -> x.domain == t1.val.domain, grid.contour.branches)
+  first_branch_idx = findfirst(x -> x.domain == t2.bpoint.domain, grid.contour.branches)
+  last_branch_idx = findfirst(x -> x.domain == t1.bpoint.domain, grid.contour.branches)
 
   first = t2
   for b in first_branch_idx:last_branch_idx
     Δt = step(grid, grid.contour.branches[b].domain)
     last = (b == last_branch_idx ? t1 : grid.branch_bounds[b][2])
-    @assert first.val.domain == last.val.domain
+    @assert first.bpoint.domain == last.bpoint.domain
     if (last.idx != first.idx) #trapezoid rule
       branch_integral = 0.5 * (f(grid[first.idx]) + f(grid[last.idx]))
       for i in (first.idx+1):(last.idx-1)
