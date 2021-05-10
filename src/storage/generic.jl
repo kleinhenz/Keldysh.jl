@@ -39,11 +39,6 @@ function Base.setindex!(X::GenericStorage{T,scalar}, v, i, j) where {T, scalar}
   end
 end
 
-function Base.setindex!(X::GenericStorage{T,true}, v, i, j) where T
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M)
-  return X.data[1,1,i,j] = v
-end
-
 function Base.size(X::GenericStorage)
   return (X.norb, X.norb, X.N, X.M)
 end
