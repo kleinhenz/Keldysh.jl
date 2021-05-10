@@ -74,6 +74,11 @@ Base.size(grid::AbstractTimeGrid) = size(grid.points)
 Base.getindex(grid::AbstractTimeGrid, i::Int) = grid.points[i]
 Base.setindex!(grid::AbstractTimeGrid, v::TimeGridPoint, i::Int) = grid.points[i] = v
 
+function Base.length(grid::AbstractTimeGrid, b::BranchEnum)
+  bounds = branch_bounds(grid, b)
+  return bounds[2].idx - bounds[1].idx + 1
+end
+
 function branch_bounds(grid::AbstractTimeGrid, b::BranchEnum)
   @assert b ∈ grid.contour
   idx = findfirst(x -> x.domain == b, grid.contour.branches)
