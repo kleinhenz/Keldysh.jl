@@ -85,16 +85,9 @@ function branch_bounds(grid::AbstractTimeGrid, b::BranchEnum)
   return grid.branch_bounds[idx]
 end
 
-"get ith point on branch b of grid"
-function Base.getindex(grid::AbstractTimeGrid, b::BranchEnum, i::Int)
-  bounds = branch_bounds(grid, b)
-  return grid[bounds[1].idx + i - 1]
-end
-
-"get all points on branch b of grid"
 function Base.getindex(grid::AbstractTimeGrid, b::BranchEnum)
   bounds = branch_bounds(grid, b)
-  return grid[bounds[1].idx:bounds[2].idx]
+  return view(grid, bounds[1].idx:bounds[2].idx)
 end
 
 function Base.step(grid::AbstractTimeGrid, b::BranchEnum)::ComplexF64
