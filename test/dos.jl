@@ -1,3 +1,5 @@
+using Keldysh, Test
+
 @testset "dos" begin
   dos_integrator = Keldysh.GaussKronrodDOSIntegrator()
   # Flat DOS
