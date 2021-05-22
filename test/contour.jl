@@ -1,3 +1,5 @@
+using Keldysh, Test
+
 @testset "contour" begin
   let c = FullContour(tmax=2.0, β=5.0)
     @test nbranches(c) == 3
