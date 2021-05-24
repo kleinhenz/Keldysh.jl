@@ -1,10 +1,26 @@
+# TODO decide on full interface that should be supported by subtypes
+# An AbstractTimeGF G should support at least:
+# * G[k,l,t1,t2] where k,l are orbital indices and t1,t2 are TimeGridPoints
+# * TimeDomain(G)
+# * similar(G)
+# * zero(G)
+# * norbitals(G)
+# * G.grid
+"""
+    AbstractTimeGF{T, scalar}
+
+Abstract supertype for Keldysh Green's function objects.\\
+An `AbstractTimeGF` object `G` supports indexing with `TimeGridPoint`s and interpolation with `BranchPoint`s.
+"""
 abstract type AbstractTimeGF{T, scalar} end
-#TODO decide on full interface that should be supported by subtypes
 
 @enum GFSignEnum fermionic=-1 bosonic=1
 
 Base.eltype(::Type{<:AbstractTimeGF{T, scalar}}) where {T, scalar} = T
 Base.eltype(X::AbstractTimeGF) = eltype(typeof(X))
+
+is_scalar(::Type{<:AbstractTimeGF{T, scalar}}) where {T, scalar} = scalar
+is_scalar(X::AbstractTimeGF) = is_scalar(typeof(X))
 
 Base.getindex(X::AbstractTimeGF{T,true}, i, j, greater=true) where {T} = X[1,1,i,j,greater]
 Base.getindex(X::AbstractTimeGF{T,false}, i, j, greater=true) where {T} = X[:,:,i,j,greater]
