@@ -13,7 +13,7 @@ function ImaginaryTimeGF(::Type{T}, grid::ImaginaryTimeGrid, norb=1, ξ::GFSignE
 end
 ImaginaryTimeGF(grid::ImaginaryTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = ImaginaryTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
-@inline function Base.getindex(G::ImaginaryTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
+@inline function Base.getindex(G::ImaginaryTimeGF, k, l, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   greater = t1 == t2 ? greater : heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
@@ -21,10 +21,10 @@ ImaginaryTimeGF(grid::ImaginaryTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scala
   ξ = Int(G.ξ)
   ntau = G.grid.ntau
 
-  greater ? G.mat[i,j, greater] : ξ * G.mat[i,j, greater]
+  greater ? G.mat[k,l,i,j,greater] : ξ * G.mat[k,l,i,j,greater]
 end
 
-function Base.setindex!(G::ImaginaryTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+function Base.setindex!(G::ImaginaryTimeGF, v, k, l, t1::TimeGridPoint, t2::TimeGridPoint)
   greater = heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
@@ -32,9 +32,9 @@ function Base.setindex!(G::ImaginaryTimeGF, v, t1::TimeGridPoint, t2::TimeGridPo
   ξ = Int(G.ξ)
 
   if greater
-    G.mat[i,j] = v
+    G.mat[k,l,i,j] = v
   else
-    G.mat[i,j] = ξ * v
+    G.mat[k,l,i,j] = ξ * v
   end
 end
 

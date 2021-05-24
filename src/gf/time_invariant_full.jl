@@ -22,7 +22,7 @@ function TimeInvariantFullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ::GFSi
 end
 TimeInvariantFullTimeGF(grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = TimeInvariantFullTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
-@inline function Base.getindex(G::TimeInvariantFullTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
+@inline function Base.getindex(G::TimeInvariantFullTimeGF, k, l, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   greater = t1 == t2 ? greater : heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
@@ -31,18 +31,18 @@ TimeInvariantFullTimeGF(grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, sc
 
   if ((t1.bpoint.domain == forward_branch || t1.bpoint.domain == backward_branch) &&
       (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
-    return greater ? G.gtr[i,j] : G.les[i,j]
+    return greater ? G.gtr[k,l,i,j] : G.les[k,l,i,j]
   elseif (t1.bpoint.domain == imaginary_branch && (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
-    return G.rm[i,j]
+    return G.rm[k,l,i,j]
   elseif ((t1.bpoint.domain == forward_branch || t1.bpoint.domain == backward_branch) && t2.bpoint.domain == imaginary_branch)
     ntau = G.grid.ntau
-    return copy(-ξ * adjoint(G.rm[ntau+1-j,i])) # Aoki 19c
+    return copy(-ξ * adjoint(G.rm[l,k,ntau+1-j,i])) # Aoki 19c
   else
-    greater ? G.mat[i,j] : ξ * G.mat[i,j]
+    greater ? G.mat[k,l,i,j,greater] : ξ * G.mat[k,l,i,j,greater]
   end
 end
 
-function Base.setindex!(G::TimeInvariantFullTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+function Base.setindex!(G::TimeInvariantFullTimeGF, v, k, l, t1::TimeGridPoint, t2::TimeGridPoint)
   greater = heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
@@ -51,17 +51,17 @@ function Base.setindex!(G::TimeInvariantFullTimeGF, v, t1::TimeGridPoint, t2::Ti
 
   if ((t1.bpoint.domain == forward_branch || t1.bpoint.domain == backward_branch) &&
       (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
-    return greater ? G.gtr[i,j] = v : G.les[i,j] = v
+    return greater ? G.gtr[k,l,i,j] = v : G.les[k,l,i,j] = v
   elseif (t1.bpoint.domain == imaginary_branch && (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
-    return G.rm[i,j] = v
+    return G.rm[k,l,i,j] = v
   elseif ((t1.bpoint.domain == forward_branch || t1.bpoint.domain == backward_branch) && t2.bpoint.domain == imaginary_branch)
     ntau = G.grid.ntau
-    return G.rm[ntau+1-j,i] = -ξ * adjoint(v) # Aoki 19c
+    return G.rm[l,k,ntau+1-j,i] = -ξ * adjoint(v) # Aoki 19c
   else
     if greater
-      G.mat[i,j] = v
+      G.mat[k,l,i,j] = v
     else
-      G.mat[i,j] = ξ * v
+      G.mat[k,l,i,j] = ξ * v
     end
   end
 end
