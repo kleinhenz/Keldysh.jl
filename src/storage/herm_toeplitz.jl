@@ -2,13 +2,14 @@ struct AntiHermitianToeplitzStorage{T, scalar} <: AbstractStorage{T, scalar}
   data::Array{T,3}
   norb::Int
   N::Int
+  M::Int
 
   function AntiHermitianToeplitzStorage{T,scalar}(data::AbstractArray{T,3}) where {T, scalar}
     norb = size(data,1)
     N = size(data,3)
     @assert size(data) == (norb, norb, N)
     @assert !(scalar && norb > 1)
-    new(data, norb, N)
+    new(data, norb, N, N)
   end
 end
 
@@ -65,31 +66,3 @@ function Base.setindex!(X::AntiHermitianToeplitzStorage{T,scalar}, v, k, l, i, j
   n = i-j+1
   X.data[k,l,n] = v
 end
-
-function Base.size(X::AntiHermitianToeplitzStorage)
-  return (X.norb, X.norb, X.N, X.N)
-end
-
-function Base.similar(X::T) where T <: AntiHermitianToeplitzStorage
-  T(similar(X.data))
-end
-
-function Base.zero(X::T) where T <: AntiHermitianToeplitzStorage
-  T(zero(X.data))
-end
-
-function Base.:+(X::AntiHermitianToeplitzStorage{T,scalar}, Y::AntiHermitianToeplitzStorage{T,scalar}) where {T,scalar}
-  @assert size(X) == size(Y)
-  return AntiHermitianToeplitzStorage(X.data .+ Y.data, scalar)
-end
-
-function Base.:-(X::AntiHermitianToeplitzStorage{T,scalar}, Y::AntiHermitianToeplitzStorage{T,scalar}) where {T,scalar}
-  @assert size(X) == size(Y)
-  return AntiHermitianToeplitzStorage(X.data .- Y.data, scalar)
-end
-
-function Base.:*(X::AntiHermitianToeplitzStorage{T,scalar}, α::Number) where {T,scalar}
-  return AntiHermitianToeplitzStorage(X.data * α, scalar)
-end
-
-Base.:*(α::Number, X::AntiHermitianToeplitzStorage) = X * α
