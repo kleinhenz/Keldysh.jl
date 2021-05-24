@@ -17,22 +17,22 @@ function KeldyshTimeGF(::Type{T}, grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=
 end
 KeldyshTimeGF(grid::KeldyshTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = KeldyshTimeGF(ComplexF64, grid, norb, ξ, scalar)
 
-@inline function Base.getindex(G::KeldyshTimeGF, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
+@inline function Base.getindex(G::KeldyshTimeGF, k, l, t1::TimeGridPoint, t2::TimeGridPoint, greater=true)
   greater = t1 == t2 ? greater : heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
   j = t2.ridx
 
-  return greater ? G.gtr[i,j] : G.les[i,j]
+  return greater ? G.gtr[k,l,i,j] : G.les[k,l,i,j]
 end
 
-function Base.setindex!(G::KeldyshTimeGF, v, t1::TimeGridPoint, t2::TimeGridPoint)
+function Base.setindex!(G::KeldyshTimeGF, v, k, l, t1::TimeGridPoint, t2::TimeGridPoint)
   greater = heaviside(t1.bpoint, t2.bpoint)
 
   i = t1.ridx
   j = t2.ridx
 
-  return greater ? G.gtr[i,j] = v : G.les[i,j] = v
+  return greater ? G.gtr[k,l,i,j] = v : G.les[k,l,i,j] = v
 end
 
 function Base.similar(G::T, ξ::GFSignEnum) where T <: KeldyshTimeGF

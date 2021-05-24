@@ -6,6 +6,11 @@ abstract type AbstractTimeGF{T, scalar} end
 Base.eltype(::Type{<:AbstractTimeGF{T, scalar}}) where {T, scalar} = T
 Base.eltype(X::AbstractTimeGF) = eltype(typeof(X))
 
+Base.getindex(X::AbstractTimeGF{T,true}, i, j, greater=true) where {T} = X[1,1,i,j,greater]
+Base.getindex(X::AbstractTimeGF{T,false}, i, j, greater=true) where {T} = X[:,:,i,j,greater]
+Base.setindex!(X::AbstractTimeGF{T,true}, v, i, j) where {T} = X[1,1,i,j] = v
+Base.setindex!(X::AbstractTimeGF{T,false}, v, i, j) where {T} = X[:,:,i,j] = v
+
 function Base.getindex(G::AbstractTimeGF, b1::BranchEnum, b2::BranchEnum)
   grid = G.grid
   @assert b1 ∈ grid.contour && b2 ∈ grid.contour
