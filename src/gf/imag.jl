@@ -1,6 +1,6 @@
 struct ImaginaryTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   grid::ImaginaryTimeGrid
-  mat::CirculantStorage{T,scalar}
+  mat::PeriodicStorage{T,scalar}
   ξ::GFSignEnum
 end
 
@@ -8,7 +8,7 @@ norbitals(G::ImaginaryTimeGF) = G.mat.norb
 
 function ImaginaryTimeGF(::Type{T}, grid::ImaginaryTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) where T <: Number
   ntau = grid.ntau
-  mat = CirculantStorage(T, ntau, norb, scalar)
+  mat = PeriodicStorage(T, ntau, norb, scalar)
   ImaginaryTimeGF(grid, mat, ξ)
 end
 ImaginaryTimeGF(grid::ImaginaryTimeGrid, norb=1, ξ::GFSignEnum=fermionic, scalar=false) = ImaginaryTimeGF(ComplexF64, grid, norb, ξ, scalar)
