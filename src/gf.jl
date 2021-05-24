@@ -76,15 +76,15 @@ function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoin
   grid = G.grid
 
   t1_l = find_lower(grid, t1)
-  t1_r = grid[t1_l.idx + 1]
+  t1_r = grid[t1_l.cidx + 1]
 
   t2_l = find_lower(grid, t2)
-  t2_r = grid[t2_l.idx + 1]
+  t2_r = grid[t2_l.cidx + 1]
 
   has_cut = t1.domain == t2.domain
   greater = heaviside(t1, t2)
 
-  do_triangular_interp = has_cut && (t1_l.idx == t2_l.idx && t1_r.idx == t2_r.idx)
+  do_triangular_interp = has_cut && (t1_l.cidx == t2_l.cidx && t1_r.cidx == t2_r.cidx)
 
   if t1 == t2
     return _line_interp(t1.val,
@@ -134,15 +134,15 @@ function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::Branc
   grid = G.grid
 
   t1_l = find_lower(grid, t1)
-  t1_r = grid[t1_l.idx + 1]
+  t1_r = grid[t1_l.cidx + 1]
 
   t2_l = find_lower(grid, t2)
-  t2_r = grid[t2_l.idx + 1]
+  t2_r = grid[t2_l.cidx + 1]
 
   has_cut = t1.domain == t2.domain
   greater = heaviside(t1, t2)
 
-  do_triangular_interp = has_cut && (t1_l.idx == t2_l.idx && t1_r.idx == t2_r.idx)
+  do_triangular_interp = has_cut && (t1_l.cidx == t2_l.cidx && t1_r.cidx == t2_r.cidx)
 
   if t1 == t2
     return _line_interp!(x,

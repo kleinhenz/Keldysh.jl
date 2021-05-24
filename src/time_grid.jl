@@ -1,5 +1,16 @@
+
+"""
+    TimeGridPoint
+
+Point on discretized contour
+
+# Fields
+* `cidx::Int64`: index along the entire contour
+* `ridx::Int64`: real/imag time index
+* `bpoint::BranchPoint`: the point
+"""
 struct TimeGridPoint
-  idx::Int64 # contour index
+  cidx::Int64 # contour index
   ridx::Int64 # real/imag time index
   bpoint::BranchPoint
 end
@@ -76,7 +87,7 @@ Base.setindex!(grid::AbstractTimeGrid, v::TimeGridPoint, i::Int) = grid.points[i
 
 function Base.length(grid::AbstractTimeGrid, b::BranchEnum)
   bounds = branch_bounds(grid, b)
-  return bounds[2].idx - bounds[1].idx + 1
+  return bounds[2].cidx - bounds[1].cidx + 1
 end
 
 function branch_bounds(grid::AbstractTimeGrid, b::BranchEnum)
@@ -87,7 +98,7 @@ end
 
 function Base.getindex(grid::AbstractTimeGrid, b::BranchEnum)
   bounds = branch_bounds(grid, b)
-  return view(grid, bounds[1].idx:bounds[2].idx)
+  return view(grid, bounds[1].cidx:bounds[2].cidx)
 end
 
 function Base.step(grid::AbstractTimeGrid, b::BranchEnum)::ComplexF64
@@ -103,7 +114,7 @@ end
 
 function integrate(f, grid::AbstractTimeGrid, t1::TimeGridPoint, t2::TimeGridPoint, init=0.0im)
   # wrap around
-  (t1.idx < t2.idx) && return integrate(f, grid, t1, grid[1]) + integrate(f, grid, grid[end], t2)
+  (t1.cidx < t2.cidx) && return integrate(f, grid, t1, grid[1]) + integrate(f, grid, grid[end], t2)
 
   integral = init
 
@@ -115,15 +126,15 @@ function integrate(f, grid::AbstractTimeGrid, t1::TimeGridPoint, t2::TimeGridPoi
     Δt = step(grid, grid.contour.branches[b].domain)
     last = (b == last_branch_idx ? t1 : grid.branch_bounds[b][2])
     @assert first.bpoint.domain == last.bpoint.domain
-    if (last.idx != first.idx) #trapezoid rule
-      branch_integral = 0.5 * (f(grid[first.idx]) + f(grid[last.idx]))
-      for i in (first.idx+1):(last.idx-1)
+    if (last.cidx != first.cidx) #trapezoid rule
+      branch_integral = 0.5 * (f(grid[first.cidx]) + f(grid[last.cidx]))
+      for i in (first.cidx+1):(last.cidx-1)
         t = @inbounds grid[i]
         branch_integral += f(t)
       end
       integral += (Δt * branch_integral)
     end
-    b == last_branch_idx || (first = grid[last.idx + 1])
+    b == last_branch_idx || (first = grid[last.cidx + 1])
   end
   return integral
 end
@@ -154,11 +165,11 @@ end
 function find_lower(grid::AbstractTimeGrid, t::BranchPoint)
   bounds = branch_bounds(grid, t.domain)
   if t.ref == 1.0 # don't hit the bound
-    idx = bounds.second.idx - 1
+    idx = bounds.second.cidx - 1
   else
     npts = t.domain == imaginary_branch ? grid.ntau : grid.nt
     step = 1 / (npts - 1)
-    idx = bounds.first.idx + Int(floor(t.ref / step))
+    idx = bounds.first.cidx + Int(floor(t.ref / step))
   end
   return grid[idx]
 end
