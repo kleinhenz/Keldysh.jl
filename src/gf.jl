@@ -22,10 +22,10 @@ Base.eltype(X::AbstractTimeGF) = eltype(typeof(X))
 is_scalar(::Type{<:AbstractTimeGF{T, scalar}}) where {T, scalar} = scalar
 is_scalar(X::AbstractTimeGF) = is_scalar(typeof(X))
 
-Base.getindex(X::AbstractTimeGF{T,true}, i, j, greater=true) where {T} = X[1,1,i,j,greater]
-Base.getindex(X::AbstractTimeGF{T,false}, i, j, greater=true) where {T} = X[:,:,i,j,greater]
-Base.setindex!(X::AbstractTimeGF{T,true}, v, i, j) where {T} = X[1,1,i,j] = v
-Base.setindex!(X::AbstractTimeGF{T,false}, v, i, j) where {T} = X[:,:,i,j] = v
+Base.getindex(X::AbstractTimeGF{T,true}, t1::TimeGridPoint, t2::TimeGridPoint, greater=true) where {T} = X[1,1,t1,t2,greater]
+Base.getindex(X::AbstractTimeGF{T,false}, t1::TimeGridPoint, t2::TimeGridPoint, greater=true) where {T} = X[:,:,t1,t2,greater]
+Base.setindex!(X::AbstractTimeGF{T,true}, v, t1::TimeGridPoint, t2::TimeGridPoint) where {T} = X[1,1,t1,t2] = v
+Base.setindex!(X::AbstractTimeGF{T,false}, v, t1::TimeGridPoint, t2::TimeGridPoint) where {T} = X[:,:,t1,t2] = v
 
 function Base.getindex(G::AbstractTimeGF, b1::BranchEnum, b2::BranchEnum)
   grid = G.grid
