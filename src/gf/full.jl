@@ -3,7 +3,7 @@ struct FullTimeGF{T, scalar} <: AbstractTimeGF{T, scalar}
   gtr::AntiHermitianStorage{T,scalar}
   les::AntiHermitianStorage{T,scalar}
   rm::GenericStorage{T,scalar}
-  mat::CirculantStorage{T,scalar}
+  mat::PeriodicStorage{T,scalar}
   ξ::GFSignEnum
 end
 
@@ -16,7 +16,7 @@ function FullTimeGF(::Type{T}, grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermio
   gtr = AntiHermitianStorage(T, nt, norb, scalar)
   les = AntiHermitianStorage(T, nt, norb, scalar)
   rm = GenericStorage(T, ntau, nt, norb, scalar)
-  mat = CirculantStorage(T, ntau, norb, scalar)
+  mat = PeriodicStorage(T, ntau, norb, scalar)
 
   FullTimeGF(grid, gtr, les, rm, mat, ξ)
 end
