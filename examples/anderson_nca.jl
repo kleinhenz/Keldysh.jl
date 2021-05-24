@@ -147,7 +147,7 @@ function Σoca(data::NCAData, t1::TimeGridPoint, t4::TimeGridPoint, st_sigma::Fo
 end
 
 function dyson!(data::NCAData, t1::TimeGridPoint, t2::TimeGridPoint, params::NCAParams)
-  @assert t1.idx >= t2.idx
+  @assert t1.cidx >= t2.cidx
 
   p_t1t2_cur = zeros(ComplexF64, length(data.states))
   p_t1t2_next = zeros(ComplexF64, length(data.states))
@@ -208,7 +208,7 @@ function make_bare_prop(grid::KeldyshTimeGrid, ρ, ϵ, U)
   ξ = [1.0, -1.0, -1.0, 1.0]
   P = map(1:4) do s
     GenericTimeGF(grid, 1, true) do t1, t2
-      t1.idx < t2.idx && return 0.0
+      t1.cidx < t2.cidx && return 0.0
       ϕ = integrate(t -> E[s], grid, t1, t2)
       heaviside(t1.bpoint, t2.bpoint) ? -im * exp(-im * ϕ) : -im * ξ[s] * ρ[s] * exp(-im * ϕ)
     end
@@ -221,7 +221,7 @@ function make_bare_prop(grid::FullTimeGrid, ϵ, U)
   ξ = [1.0, -1.0, -1.0, 1.0]
   P = map(1:4) do s
     GenericTimeGF(grid, 1, true) do t1, t2
-      t1.idx < t2.idx && return 0.0
+      t1.cidx < t2.cidx && return 0.0
       ϕ = integrate(t -> E[s], grid, t1, t2)
       heaviside(t1.bpoint, t2.bpoint) ? -im * exp(-im * ϕ) : -im * ξ[s] * exp(-im * ϕ)
     end

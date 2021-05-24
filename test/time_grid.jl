@@ -25,8 +25,8 @@ using Keldysh, Test
       for t in b.(range(0.0, 1.0, length=3))
         tl = Keldysh.find_lower(grid, t)
         @test tl.bpoint.domain == t.domain
-        @test tl.idx != length(grid)
-        tu = grid[tl.idx + 1]
+        @test tl.cidx != length(grid)
+        tu = grid[tl.cidx + 1]
 
         @test heaviside(c, t, tl.bpoint)
         @test heaviside(c, tu.bpoint, t)
@@ -59,8 +59,8 @@ using Keldysh, Test
     B = zeros(ComplexF64, N, N)
     for t1 in grid
       for t2 in grid
-        A[t1.idx, t2.idx] = integrate(t -> 1.0, grid, t1, t2)
-        B[t1.idx, t2.idx] = t1.bpoint.val - t2.bpoint.val
+        A[t1.cidx, t2.cidx] = integrate(t -> 1.0, grid, t1, t2)
+        B[t1.cidx, t2.cidx] = t1.bpoint.val - t2.bpoint.val
       end
     end
     @test maximum(abs.(A .- B)) < 1e-12
