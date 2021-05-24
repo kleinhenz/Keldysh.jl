@@ -11,13 +11,14 @@ struct PeriodicStorage{T,scalar} <: AbstractStorage{T, scalar}
   data::Array{T,3}
   norb::Int
   N::Int
+  M::Int
 
   function PeriodicStorage{T,scalar}(data::AbstractArray{T,3}) where {T, scalar}
     norb = size(data,1)
     N = size(data,3)
     @assert size(data) == (norb, norb, N)
     @assert !(scalar && norb > 1)
-    new(data,norb,N)
+    new(data,norb,N,N)
   end
 end
 
@@ -78,31 +79,3 @@ function Base.setindex!(X::PeriodicStorage{T,scalar}, v, k, l, i, j) where {T,sc
     return X.data[k,l,i-j+X.N] = v
   end
 end
-
-function Base.size(X::PeriodicStorage)
-  return (X.norb, X.norb, X.N, X.N)
-end
-
-function Base.similar(X::T) where T <: PeriodicStorage
-  T(similar(X.data))
-end
-
-function Base.zero(X::T) where T <: PeriodicStorage
-  T(zero(X.data))
-end
-
-function Base.:+(X::PeriodicStorage{T,scalar}, Y::PeriodicStorage{T,scalar}) where {T,scalar}
-  @assert size(X) == size(Y)
-  return PeriodicStorage(X.data .+ Y.data, scalar)
-end
-
-function Base.:-(X::PeriodicStorage{T,scalar}, Y::PeriodicStorage{T,scalar}) where {T,scalar}
-  @assert size(X) == size(Y)
-  return PeriodicStorage(X.data .- Y.data, scalar)
-end
-
-function Base.:*(X::PeriodicStorage{T,scalar}, α::Number) where {T,scalar}
-  return PeriodicStorage(X.data * α, scalar)
-end
-
-Base.:*(α::Number, X::PeriodicStorage) = X * α
