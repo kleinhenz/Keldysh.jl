@@ -60,9 +60,11 @@ function Base.getindex(G::AbstractTimeGF, component::Symbol)
     X = real(-im .* G[imaginary_branch, imaginary_branch])
     return norb == 1 ? X[:,1] : X[:,:,:,1]
   elseif component == :retarded
+    # TODO include heaviside function?
     ret = G[:greater] - G[:lesser]
     return ret
   elseif component == :advanced
+    # TODO include heaviside function?
     adv = G[:lesser] - G[:greater]
     return adv
   elseif component == :leftmixing
