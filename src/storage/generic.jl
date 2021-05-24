@@ -25,29 +25,10 @@ end
 
 GenericStorage(N::Integer, M::Integer, norb=1, scalar=false) = GenericStorage(ComplexF64, N, M, norb, scalar)
 
-#TODO would be nice to have this to avoid duplication
-# Base.getindex(X::GenericStorage{T,scalar}, i, j) where {T, scalar} = X[:,:,i,j]
-
-@inline function Base.getindex(X::GenericStorage{T,scalar}, i, j) where {T, scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M)
-  return scalar ? X.data[1,1,i,j] : X.data[:,:,i,j]
-end
-
 @inline function Base.getindex(X::GenericStorage{T,scalar}, k, l, i, j) where {T, scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M) && (1 <= k <= X.norb) && (1 <= l <= X.norb)
   return X.data[k,l,i,j]
 end
 
-function Base.setindex!(X::GenericStorage{T,scalar}, v, i, j) where {T, scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M)
-  if scalar
-    return X.data[1,1,i,j] = v
-  else
-    return X.data[:,:,i,j] = v
-  end
-end
-
 @inline function Base.setindex!(X::GenericStorage{T,scalar}, v, k, l, i, j) where {T, scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.M) && (1 <= k <= X.norb) && (1 <= l <= X.norb)
   return X.data[k,l,i,j] = v
 end

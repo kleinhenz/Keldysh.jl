@@ -33,45 +33,15 @@ end
 
 PeriodicStorage(N::Integer, norb=1, scalar=false) = PeriodicStorage(ComplexF64, N, norb, scalar)
 
-function Base.getindex(X::PeriodicStorage{T,scalar}, i, j, greater=true) where {T,scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
-
-  greater = i == j ? greater : i > j
-
-  if scalar
-    return greater ? X.data[1,1,i-j+1] : X.data[1,1,i-j+X.N]
-  else
-    return greater ? X.data[:,:,i-j+1] : X.data[:,:,i-j+X.N]
-  end
-end
-
-function Base.getindex(X::PeriodicStorage{T,scalar}, k, l, i, j, greater=true) where {T,scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N) && (1 <= k <= X.norb) && (1 <= l <= X.norb)
-
+function Base.getindex(X::PeriodicStorage{T,scalar}, k, l, i::Int, j::Int, greater=true) where {T,scalar}
   greater = i == j ? greater : i > j
   return greater ? X.data[k,l,i-j+1] : X.data[k,l,i-j+X.N]
 end
+# need to define these methods to forward greater argument
+Base.getindex(X::PeriodicStorage{T,true}, i, j, greater=true) where {T} = X[1,1,i,j, greater]
+Base.getindex(X::PeriodicStorage{T,false}, i, j, greater=true) where {T} = X[:,:,i,j, greater]
 
-function Base.setindex!(X::PeriodicStorage{T,scalar}, v, i, j) where {T,scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N)
-
-  if scalar
-    if i >= j
-      return X.data[1,1,i-j+1] = v
-    else
-      return X.data[1,1,i-j+X.N] = v
-    end
-  else
-    if i >= j
-      return X.data[:,:,i-j+1] = v
-    else
-      return X.data[:,:,i-j+X.N] = v
-    end
-  end
-end
-
-function Base.setindex!(X::PeriodicStorage{T,scalar}, v, k, l, i, j) where {T,scalar}
-  @boundscheck @assert (1 <= i <= X.N) && (1 <= j <= X.N) && (1 <= k <= X.norb) && (1 <= l <= X.norb)
+function Base.setindex!(X::PeriodicStorage{T,scalar}, v, k, l, i::Int, j::Int) where {T,scalar}
   greater = i >= j
   if greater
     return X.data[k,l,i-j+1] = v
