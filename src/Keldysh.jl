@@ -16,7 +16,7 @@ export AbstractContour, FullContour, KeldyshContour, ImaginaryContour, twist, he
 export AbstractTimeGrid, FullTimeGrid, KeldyshTimeGrid, ImaginaryTimeGrid, TimeGridPoint, TimeDomain, integrate, realtimes, imagtimes
 
 # TimeGF functions
-export fermionic, bosonic, norbitals, AbstractTimeGF, GenericTimeGF, FullTimeGF, TimeInvariantFullTimeGF, KeldyshTimeGF, TimeInvariantKeldyshTimeGF, ImaginaryTimeGF
+export fermionic, bosonic, norbitals, is_scalar, AbstractTimeGF, GenericTimeGF, FullTimeGF, TimeInvariantFullTimeGF, KeldyshTimeGF, TimeInvariantKeldyshTimeGF, ImaginaryTimeGF
 
 # DOS functions
 export AbstractDOS, DOS, SingularDOS, DeltaDOS, flat_dos, gaussian_dos, bethe_dos, chain_dos, square_dos
