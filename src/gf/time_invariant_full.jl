@@ -29,8 +29,8 @@ TimeInvariantFullTimeGF(grid::FullTimeGrid, norb=1, ξ::GFSignEnum=fermionic, sc
   j = t2.ridx
   ξ = Int(G.ξ)
 
-  if ((t1.bpoint.domain == forward_branch || t1.bpoint.domain == backward_branch) &&
-      (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
+  real_branches = (forward_branch, backward_branch)
+  if (t1.bpoint.domain ∈ real_branches && t2.bpoint.domain ∈ real_branches)
     return greater ? G.gtr[k,l,i,j] : G.les[k,l,i,j]
   elseif (t1.bpoint.domain == imaginary_branch && (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
     return G.rm[k,l,i,j]
@@ -49,8 +49,8 @@ function Base.setindex!(G::TimeInvariantFullTimeGF, v, k, l, t1::TimeGridPoint, 
   j = t2.ridx
   ξ = Int(G.ξ)
 
-  if ((t1.bpoint.domain == forward_branch || t1.bpoint.domain == backward_branch) &&
-      (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
+  real_branches = (forward_branch, backward_branch)
+  if (t1.bpoint.domain ∈ real_branches && t2.bpoint.domain ∈ real_branches)
     return greater ? G.gtr[k,l,i,j] = v : G.les[k,l,i,j] = v
   elseif (t1.bpoint.domain == imaginary_branch && (t2.bpoint.domain == forward_branch || t2.bpoint.domain == backward_branch))
     return G.rm[k,l,i,j] = v
