@@ -12,7 +12,7 @@ Credit to Andrey Antipov and Igor Krivenko for designing a first version of the 
 ## Usage
 
 The following code constructs a Green's function object from a spectral density and plots the Matsubara, retarded, and lesser Keldysh components.
-```
+```Julia
 using Keldysh, PyPlot
 
 # first define a contour
