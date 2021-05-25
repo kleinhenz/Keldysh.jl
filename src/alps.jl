@@ -119,7 +119,7 @@ function ALPSTimeGF(g::HDF5.Group)
   data = ALPSComplex(g["data"]).data
 
   G = GenericTimeGF(grid, 1, true) do t1, t2
-    data[t1.idx, t2.idx]
+    data[t1.cidx, t2.cidx]
   end
 
   return ALPSTimeGF(G)
@@ -136,7 +136,7 @@ function Base.write(parent::Union{HDF5.File, HDF5.Group}, name::String, X::ALPST
 
   for t1 in grid
     for t2 in grid
-      data[t1.idx, t2.idx] = G[t1, t2]
+      data[t1.cidx, t2.cidx] = G[t1, t2]
     end
   end
 
