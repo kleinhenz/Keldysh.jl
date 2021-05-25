@@ -1,7 +1,7 @@
 name = "Keldysh"
 uuid = "50f2bc7e-5fd7-11e9-13c7-85fb88b4f34f"
 authors = ["Joseph Kleinhenz <kleinhenz.joseph@gmail.com>"]
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 Elliptic = "b305315f-e792-5b7a-8f41-49f472929428"
