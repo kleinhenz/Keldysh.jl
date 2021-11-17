@@ -98,8 +98,8 @@ function Base.write(parent::Union{HDF5.File, HDF5.Group}, name::String, X::ALPST
   end
 
   values = ALPSComplex(map(t -> t.bpoint.val, grid))
-  refs = map(t -> t.val.ref, grid)
-  branch_enums = map(t -> Int32(Int(t.val.domain) - 1), grid)
+  refs = map(t -> t.bpoint.ref, grid)
+  branch_enums = map(t -> Int32(Int(t.bpoint.domain) - 1), grid)
 
   write(g, "values", values)
   write(g, "refs", refs)
