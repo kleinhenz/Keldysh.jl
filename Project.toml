@@ -11,5 +11,7 @@ QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
+Elliptic = "1"
 HDF5 = "0.14, 0.15"
+QuadGK = "2"
 julia = "1.5"
