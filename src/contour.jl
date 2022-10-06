@@ -52,6 +52,19 @@ end
 
 (c::AbstractContour)(ref::Real) = get_point(c, ref)
 
+function get_ref(c::AbstractContour, t::BranchPoint)
+  ref = 0
+  for b in c.branches
+      lb = length(b)
+      if t.domain == b.domain
+          return ref + (t.ref * lb)
+      else
+          ref += lb
+      end
+  end
+  @assert false
+end
+
 function twist(c::FullContour)
   n = nbranches(c)
   FullContour(ntuple(i -> c.branches[mod1(i+1,n)], n), c.tmax, c.β)

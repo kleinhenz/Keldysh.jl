@@ -53,4 +53,11 @@ using Keldysh, Test
     @test backward_branch ∉ c
     @test imaginary_branch ∈ c
   end
+
+  let c = twist(FullContour(tmax=1.0, β=5.0))
+    for ref in [0.0, 0.5, 2.0, 5.0, 5.5, 6.5]
+        @test get_ref(c, get_point(c, ref)) == ref
+        @test get_ref(c, c(ref)) == ref
+    end
+  end
 end
