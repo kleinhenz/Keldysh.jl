@@ -10,7 +10,7 @@ export fermi
 export BranchEnum, forward_branch, backward_branch, imaginary_branch, BranchPoint, Branch
 
 # Contour functions
-export AbstractContour, FullContour, KeldyshContour, ImaginaryContour, twist, heaviside, nbranches
+export AbstractContour, FullContour, KeldyshContour, ImaginaryContour, twist, heaviside, nbranches, get_point, get_ref
 
 # TimeGrid functions
 export AbstractTimeGrid, FullTimeGrid, KeldyshTimeGrid, ImaginaryTimeGrid, TimeGridPoint, TimeDomain, integrate, realtimes, imagtimes
