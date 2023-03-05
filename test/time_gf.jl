@@ -87,3 +87,43 @@ using Keldysh, Test
   end
 
 end
+
+@testset "imtime interpolation" begin
+
+    β = 1.0
+    ntau = 16
+    
+    contour = ImaginaryContour(β=β);
+    grid = ImaginaryTimeGrid(contour, ntau);
+
+    Δ = ImaginaryTimeGF(
+        (t1, t2) -> im * (t1.bpoint.val - t2.bpoint.val)^2,
+        grid, 1, fermionic, true)
+
+    r1, r2 = 0.5, 0.1
+    
+    t1 = get_point(contour, r1)
+    t2 = get_point(contour, r2)
+
+    d_12 = Δ(t1, t2)
+
+    t12 = get_point(contour, r1 - r2)
+    t0 = get_point(contour, 0)
+            
+    d_120 = Δ(t12, t0)
+
+    diff = abs(d_12 - d_120)
+    tol = 1e-12
+    
+    if diff >= tol
+        println("t0  = $t0")
+        println("t12 = $t12")
+        println("t1  = $t1")
+        println("t2  = $t2")
+        println("d_12  = $d_12")
+        println("d_120 = $d_120")
+    end
+    
+    @test diff < tol    
+        
+end
