@@ -74,7 +74,7 @@ function Base.getindex(G::AbstractTimeGF, component::Symbol)
   end
 end
 
-function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+function interpolate_generic(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
   grid = G.grid
 
   t1_l = find_lower(grid, t1)
@@ -132,7 +132,7 @@ function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoin
   end
 end
 
-function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+function interpolate_generic!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
   grid = G.grid
 
   t1_l = find_lower(grid, t1)
@@ -192,6 +192,14 @@ function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::Branc
                          G[t1_r, t2_r, greater])
     end
   end
+end
+
+function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+  return interpolate_generic(G, t1, t2)
+end
+
+function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+  return interpolate_generic!(x, G, t1, t2)
 end
 
 function (G::AbstractTimeGF{T, true})(t1::BranchPoint, t2::BranchPoint) where T
