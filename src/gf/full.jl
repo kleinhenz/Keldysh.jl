@@ -134,42 +134,18 @@ function FullTimeGF(dos::AbstractDOS, grid::FullTimeGrid)
   end
 end
 
-# G(τ₁, τ₂) = G(τ₁ - τ₂, 0)
-# G(τ) = ξ G(τ + β)
-function interpolate(G::FullTimeGF{T,true}, t1::BranchPoint, t2::BranchPoint) where {T}
-  !(t1.domain == imaginary_branch && t2.domain == imaginary_branch) && return interpolate_generic(G, t1, t2)
-
-  greater = heaviside(t1, t2)
-
-  grid = G.grid
-  imag_branch = grid.contour[imaginary_branch]
-
-  zero_im = imag_branch(0.0)
-
-  if greater
-    Δτ = imag_branch(t1.ref - t2.ref)
-    return interpolate_generic(G, Δτ, zero_im)
+function interpolate(G::FullTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+  if t1.domain == imaginary_branch && t2.domain == imaginary_branch
+    return interpolate_imag(G, t1, t2)
   else
-    Δτ = imag_branch(t1.ref - t2.ref + 1.0)
-    return Int(G.ξ) * interpolate_generic(G, Δτ, zero_im)
+    return interpolate_generic(G, t1, t2)
   end
 end
 
-function interpolate!(x, G::FullTimeGF{T,false}, t1::BranchPoint, t2::BranchPoint) where {T}
-  !(t1.domain == imaginary_branch && t2.domain == imaginary_branch) && return interpolate_generic!(x, G, t1, t2)
-
-  greater = heaviside(t1, t2)
-
-  grid = G.grid
-  imag_branch = grid.contour[imaginary_branch]
-
-  zero_im = imag_branch(0.0)
-
-  if greater
-    Δτ = imag_branch(t1.ref - t2.ref)
-    return interpolate_generic!(x, G, Δτ, zero_im)
+function interpolate!(x, G::FullTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+  if t1.domain == imaginary_branch && t2.domain == imaginary_branch
+    return interpolate_imag!(x, G, t1, t2)
   else
-    Δτ = imag_branch(t1.ref - t2.ref + 1.0)
-    return Int(G.ξ) * interpolate_generic!(x, G, Δτ, zero_im)
+    return interpolate_generic!(x, G, t1, t2)
   end
 end
