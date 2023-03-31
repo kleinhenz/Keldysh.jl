@@ -88,3 +88,19 @@ function ImaginaryTimeGF(dos::AbstractDOS, grid::ImaginaryTimeGrid)
     Keldysh.dos2gf(dos, β, t1.bpoint, t2.bpoint)
   end
 end
+
+function interpolate(G::ImaginaryTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+  if t1.domain == imaginary_branch && t2.domain == imaginary_branch
+    return interpolate_imag(G, t1, t2)
+  else
+    return interpolate_generic(G, t1, t2)
+  end
+end
+
+function interpolate!(x, G::ImaginaryTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+  if t1.domain == imaginary_branch && t2.domain == imaginary_branch
+    return interpolate_imag!(x, G, t1, t2)
+  else
+    return interpolate_generic!(x, G, t1, t2)
+  end
+end

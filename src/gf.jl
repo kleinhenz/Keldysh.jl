@@ -74,7 +74,7 @@ function Base.getindex(G::AbstractTimeGF, component::Symbol)
   end
 end
 
-function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+function interpolate_generic(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
   grid = G.grid
 
   t1_l = find_lower(grid, t1)
@@ -132,7 +132,7 @@ function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoin
   end
 end
 
-function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+function interpolate_generic!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
   grid = G.grid
 
   t1_l = find_lower(grid, t1)
@@ -192,6 +192,52 @@ function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::Branc
                          G[t1_r, t2_r, greater])
     end
   end
+end
+
+# G(τ₁, τ₂) = G(τ₁ - τ₂, 0)
+# G(τ) = ξ G(τ + β)
+function interpolate_imag(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+  @assert t1.domain == imaginary_branch && t2.domain == imaginary_branch
+  greater = heaviside(t1, t2)
+
+  grid = G.grid
+  imag_branch = grid.contour[imaginary_branch]
+
+  zero_im = imag_branch(0.0)
+
+  if greater
+    Δτ = imag_branch(t1.ref - t2.ref)
+    return interpolate_generic(G, Δτ, zero_im)
+  else
+    Δτ = imag_branch(t1.ref - t2.ref + 1.0)
+    return Int(G.ξ) * interpolate_generic(G, Δτ, zero_im)
+  end
+end
+
+function interpolate_imag!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+  @assert t1.domain == imaginary_branch && t2.domain == imaginary_branch
+  greater = heaviside(t1, t2)
+
+  grid = G.grid
+  imag_branch = grid.contour[imaginary_branch]
+
+  zero_im = imag_branch(0.0)
+
+  if greater
+    Δτ = imag_branch(t1.ref - t2.ref)
+    return interpolate_generic!(x, G, Δτ, zero_im)
+  else
+    Δτ = imag_branch(t1.ref - t2.ref + 1.0)
+    return Int(G.ξ) * interpolate_generic!(x, G, Δτ, zero_im)
+  end
+end
+
+function interpolate(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::BranchPoint) where T
+  return interpolate_generic(G, t1, t2)
+end
+
+function interpolate!(x, G::AbstractTimeGF{T, false}, t1::BranchPoint, t2::BranchPoint) where T
+  return interpolate_generic!(x, G, t1, t2)
 end
 
 function (G::AbstractTimeGF{T, true})(t1::BranchPoint, t2::BranchPoint) where T
