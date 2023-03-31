@@ -210,7 +210,7 @@ function interpolate_imag(G::AbstractTimeGF{T, true}, t1::BranchPoint, t2::Branc
     return interpolate_generic(G, Δτ, zero_im)
   else
     Δτ = imag_branch(t1.ref - t2.ref + 1.0)
-    return Int(G.ξ) * interpolate_generic!(x, G, Δτ, zero_im)
+    return Int(G.ξ) * interpolate_generic(G, Δτ, zero_im)
   end
 end
 
