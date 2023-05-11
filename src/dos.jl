@@ -132,9 +132,9 @@ end
 #
 
 """
-`flat_dos(;ν=1.0, D=5.0)`
+`flat_dos(;ν=1.0, D=5.0, μ=0.0)`
 
-return flat band DOS with half-bandwith D and inverse cutoff width ν centered at zero
+return flat band DOS centered at μ with half-bandwith D and inverse cutoff width ν
 """
 flat_dos(; ν=1.0, D=5.0, μ=0.0) = DOS(-Inf, Inf, ω -> (1.0/π) * fermi(ν * (ω - μ - D)) * fermi(-ν * (ω - μ + D)))
 
