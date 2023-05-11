@@ -146,36 +146,36 @@ return normalized Gaussian DOS centered at ϵ with width ν
 gaussian_dos(; ϵ=1.0, ν=1.0) = DOS(-Inf, Inf, ω -> (1.0 / (2 * sqrt(π * ν))) * exp(-((ω - ϵ)^2)/(4ν)))
 
 """
-`bethe_dos(; t=1.0)`
+`bethe_dos(; ϵ=0.0, t=1.0)`
 
-return normalized DOS of a Bethe lattice with hopping constant t
+return normalized DOS of a Bethe lattice with hopping constant t centered at ϵ
 """
-bethe_dos(; t=1.0) = SingularDOS(-2t, 2t,
+bethe_dos(; ϵ=0.0, t=1.0) = SingularDOS(-2t + ϵ, 2t + ϵ,
   ω -> begin
-    if ω == -2t || ω == 2t
+    if ω == -2t + ϵ || ω == 2t + ϵ
       -2 / (π*t)
     else
-      x = ω / (2t)
+      x = (ω - ϵ) / (2t)
       (sqrt(1 - x*x) - sqrt(2 * (1 - x)) - sqrt(2 * (1 + x))) / (π*t)
     end
   end,
   [
-    DOSSingularity(-2t, ω -> sqrt(2 * (1 + ω / (2t))) / (π*t), 16 / (3*π)),
-    DOSSingularity( 2t, ω -> sqrt(2 * (1 - ω / (2t))) / (π*t), 16 / (3*π))
+    DOSSingularity(-2t + ϵ, ω -> sqrt(2 * (1 + (ω - ϵ) / (2t))) / (π*t), 16 / (3*π)),
+    DOSSingularity( 2t + ϵ, ω -> sqrt(2 * (1 - (ω - ϵ) / (2t))) / (π*t), 16 / (3*π))
   ]
 )
 
 """
-`chain_dos(; t=1.0)`
+`chain_dos(; ϵ=0.0, t=1.0)`
 
-return normalized DOS of a linear chain with hopping constant t
+return normalized DOS of a linear chain with hopping constant t centered at ϵ
 """
-chain_dos(; t=1.0) = SingularDOS(-2t, 2t,
+chain_dos(; ϵ=0.0, t=1.0) = SingularDOS(-2t + ϵ, 2t + ϵ,
   ω -> begin
-    if ω == -2t || ω == 2*t
+    if ω == -2t + ϵ || ω == 2*t + ϵ
       -3 / (8*π*t)
     else
-      x = ω / (2t)
+      x = (ω - ϵ) / (2t)
       rp = sqrt(2 * (1 - x))
       # The second term regularizes the derivative of near ω = 2t to ease integration
       sp = 1 / (2*π*t * rp) + rp / (16*π*t)
@@ -184,19 +184,19 @@ chain_dos(; t=1.0) = SingularDOS(-2t, 2t,
       # The second term regularizes the derivative near ω = -2t to ease integration
       sm = 1 / (2*π*t * rm) + rm / (16*π*t)
 
-      (1 / (2*π*t)) / sqrt(1 - x*x) - sp - sm
+      (1 / (2*π*t)) / sqrt(1 - x^2) - sp - sm
     end
   end,
   [
-    DOSSingularity(-2t, ω -> begin
-                          x = ω / (2t)
+    DOSSingularity(-2t + ϵ, ω -> begin
+                          x = (ω - ϵ) / (2t)
                           s = sqrt(2 * (1 + x))
                           # The second term regularizes the derivative
                           1 / (2*π*t*s) + s / (16*π*t)
                         end,
                     7 / (3*π)),
-    DOSSingularity( 2t, ω -> begin
-                          x = ω / (2t)
+    DOSSingularity( 2t + ϵ, ω -> begin
+                          x = (ω - ϵ) / (2t)
                           s = sqrt(2 * (1 - x))
                           # The second term regularizes the derivative
                           1 / (2*π*t*s) + s / (16*π*t)
@@ -206,21 +206,21 @@ chain_dos(; t=1.0) = SingularDOS(-2t, 2t,
 )
 
 """
-`square_dos(; t=1.0)`
+`square_dos(; ϵ=0.0, t=1.0)`
 
-return normalized DOS of a 2D square lattice with hopping constant t
+return normalized DOS of a 2D square lattice with hopping constant t centered at ϵ
 """
-square_dos(; t=1.0) = SingularDOS(-4t, 4t,
+square_dos(; ϵ=0.0, t=1.0) = SingularDOS(-4t + ϵ, 4t + ϵ,
   ω -> begin
-    if ω ≈ 0
+    if ω ≈ ϵ
       0
     else
-      x = ω / (4t)
+      x = (ω - ϵ) / (4t)
       (1 / (2 * π^2 * t)) * (Elliptic.K(1 - x^2) + log(abs(x) / 4));
     end
   end,
   [
-    DOSSingularity(0, ω -> -1 / (2 * π^2 * t) * log(abs(ω) / (16t)),
+    DOSSingularity(ϵ, ω -> -1 / (2 * π^2 * t) * log(abs(ω - ϵ) / (16t)),
                    4 / (π^2) * (1 + 2 * log(2)))
   ]
 )
