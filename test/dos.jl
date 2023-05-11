@@ -3,13 +3,11 @@ using Keldysh, Test
 @testset "dos" begin
   dos_integrator = Keldysh.GaussKronrodDOSIntegrator()
   # Flat DOS
-  let ν=5.0, D=2.0, dos = Keldysh.flat_dos(ν=ν, D=D)
+  let ν=5.0, D=2.0, μ=0.5, dos = Keldysh.flat_dos(ν=ν, D=D, μ=μ)
     α = ν*D
     moments = [dos_integrator(ω -> ω^n, dos) for n = 0:3]
-    moments_ref = (1/π)*[D*(1 + coth(α)),
-                         0.,
-                         D^3*(π^2 + α^2)*(1 + coth(α))/(3α^2),
-                         0.]
+    σ2 = D^2*(π^2 + α^2)/(3α^2)
+    moments_ref = (D/π) * (1 + coth(α)) * [1.0, μ, μ^2 + σ2, μ^3 + 3μ*σ2]
     @test isapprox(moments, moments_ref, atol=1e-10, rtol=1e-10)
   end
 
