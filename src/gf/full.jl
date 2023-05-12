@@ -82,6 +82,30 @@ function Base.zero(G::T) where T <: FullTimeGF
   zero(G, G.ξ)
 end
 
+function Base.:+(G1::T, G2::T) where T <: FullTimeGF
+  @assert G1.grid == G2.grid
+  @assert G1.ξ == G2.ξ
+  return T(G1.grid, G1.gtr + G2.gtr, G1.les + G2.les, G1.rm + G2.rm, G1.mat + G2.mat, G1.ξ)
+end
+
+function Base.:-(G1::T, G2::T) where T <: FullTimeGF
+  @assert G1.grid == G2.grid
+  @assert G1.ξ == G2.ξ
+  return T(G1.grid, G1.gtr - G2.gtr, G1.les - G2.les, G1.rm - G2.rm, G1.mat - G2.mat, G1.ξ)
+end
+
+function Base.:*(G::T, α::Number) where T <: FullTimeGF
+  return T(G.grid, G.gtr * α, G.les * α, G.rm * α, G.mat * α, G.ξ)
+end
+
+function Base.:*(α::Number, G::T) where T <: FullTimeGF
+  return G * α
+end
+
+function Base.:-(G::T) where T <: FullTimeGF
+  return T(G.grid, -G.gtr, -G.les, -G.rm, -G.mat, G.ξ)
+end
+
 function TimeDomain(G::FullTimeGF)
   grid = G.grid
   tplus = grid[forward_branch]
