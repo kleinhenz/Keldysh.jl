@@ -47,6 +47,10 @@ function Base.:*(α::Number, X::T) where T <: AbstractStorage
   return X * α
 end
 
+function Base.:-(X::T) where T <: AbstractStorage
+  return T(-X.data)
+end
+
 include("storage/generic.jl")
 include("storage/herm.jl")
 include("storage/herm_toeplitz.jl")

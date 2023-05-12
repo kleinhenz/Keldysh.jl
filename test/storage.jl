@@ -4,11 +4,11 @@ using Keldysh, LinearAlgebra, Test
   let norb=2, N=10
     X = rand(norb, norb, N, N)
     Y = rand(norb, norb, N, N)
-    Z = X .+ 2 .* Y .- 3 .* X
+    Z = -(X .+ 2 .* Y .- 3 .* X)
 
     A = Keldysh.GenericStorage(X)
     B = Keldysh.GenericStorage(Y)
-    C = A + 2*B - 3*A
+    C = -(A + 2*B - 3*A)
 
     D = similar(A)
     for (i,j) in Iterators.product(1:N,1:N)
@@ -45,11 +45,11 @@ using Keldysh, LinearAlgebra, Test
     X = get_rand_herm()
     Y = get_rand_herm()
 
-    Z = X .+ 2 .* Y .- 3 .* X
+    Z = -(X .+ 2 .* Y .- 3 .* X)
 
     A = Keldysh.AntiHermitianStorage(X)
     B = Keldysh.AntiHermitianStorage(Y)
-    C = A + 2*B - 3*A
+    C = -(A + 2*B - 3*A)
 
     Dup = similar(A)
     Dlo = similar(A)
@@ -96,11 +96,11 @@ using Keldysh, LinearAlgebra, Test
     X = get_rand_herm_toeplitz()
     Y = get_rand_herm_toeplitz()
 
-    Z = X .+ 2 .* Y .- 3 .* X
+    Z = -(X .+ 2 .* Y .- 3 .* X)
 
     A = Keldysh.AntiHermitianToeplitzStorage(X)
     B = Keldysh.AntiHermitianToeplitzStorage(Y)
-    C = A + 2*B - 3*A
+    C = -(A + 2*B - 3*A)
 
     Dup = similar(A)
     Dlo = similar(A)
@@ -145,11 +145,11 @@ using Keldysh, LinearAlgebra, Test
 
     X = get_rand_periodic()
     Y = get_rand_periodic()
-    Z = X .+ 2 .* Y .- 3 .* X
+    Z = -(X .+ 2 .* Y .- 3 .* X)
 
     A = Keldysh.PeriodicStorage(X[:,:,:,1])
     B = Keldysh.PeriodicStorage(Y[:,:,:,1])
-    C = A + 2*B - 3*A
+    C = -(A + 2*B - 3*A)
 
     Dup = similar(A)
     for i in 1:N
