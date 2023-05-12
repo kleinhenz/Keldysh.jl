@@ -49,6 +49,28 @@ function Base.zero(G::T) where T <: GenericTimeGF
   T(G.grid, zero(G.data))
 end
 
+function Base.:+(G1::T, G2::T) where T <: GenericTimeGF
+  @assert G1.grid == G2.grid
+  return T(G1.grid, G1.data + G2.data)
+end
+
+function Base.:-(G1::T, G2::T) where T <: GenericTimeGF
+  @assert G1.grid == G2.grid
+  return T(G1.grid, G1.data - G2.data)
+end
+
+function Base.:*(G::T, α::Number) where T <: GenericTimeGF
+  return T(G.grid, G.data * α)
+end
+
+function Base.:*(α::Number, G::T) where T <: GenericTimeGF
+  return G * α
+end
+
+function Base.:-(G::T) where T <: GenericTimeGF
+  return T(G.grid, -G.data)
+end
+
 function GenericTimeGF(dos::AbstractDOS, grid::FullTimeGrid)
   G = TimeInvariantFullTimeGF(dos, grid)
   GenericTimeGF(grid,1,true) do t1, t2
